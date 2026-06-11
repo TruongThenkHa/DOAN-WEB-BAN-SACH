@@ -172,10 +172,7 @@
                         <label><input type="radio" name="urlMode" value="download" /> Tải về lưu local</label>
                     </div>
 
-                    <div class="hint">Chọn ảnh bìa từ nhóm URL (theo thứ tự dòng):</div>
-                    <input class="input" name="primaryChoice"
-                           placeholder="VD: url:0 (dòng 1), url:1 (dòng 2), hoặc auto" value="auto" />
-                    <div class="hint">Tạo mới chỉ chọn bìa từ URL/static. Ảnh upload bìa chọn ở Edit.</div>
+                    <input type="hidden" name="primaryChoice" id="primaryChoice" value="auto" />
                 </div>
 
                 <div class="field">
@@ -226,7 +223,6 @@
                         <a class="btn btn-ghost" asp-action="Index">Hủy</a>
                     </div>
                 </form>
-                <input type="hidden" name="primaryChoice" id="primaryChoice" value="auto" />
             </div>
         </div>
     </div>
@@ -384,7 +380,7 @@
             if (urlTextarea) urlTextarea.addEventListener('input', rebuildPreview);
             urlModeRadios().forEach(r => r.addEventListener('change', rebuildPreview));
             document.addEventListener('change', (e) => {
-            if (e.target && e.target.name === "staticImages") rebuildPreview;
+            if (e.target && e.target.name === "staticImages") rebuildPreview();
             });
 
             rebuildPreview();

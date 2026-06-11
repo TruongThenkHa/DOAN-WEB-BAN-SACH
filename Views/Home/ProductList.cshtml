@@ -210,6 +210,7 @@
                         <div class="product-card" onclick="window.location.href='/Home/ProductDetail/@book.BookID'" style="cursor:pointer;">
                             <div class="card-image-wrapper">
                                 <img src="@imgSrc" alt="@book.Title" class="card-image"
+                                     asp-append-version="true"
                                      onerror="this.src='/images/no-image.png'" />
                                 @if (book.Stock == 0)
                                 {

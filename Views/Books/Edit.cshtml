@@ -476,7 +476,7 @@
 
             function clearGrid() { grid.innerHTML = ""; }
 
-            function addCard({ src, label, choiceValue }) {
+            function addCard({ src, label, choiceValue, checked }) {
                 const wrap = document.createElement('label');
                 wrap.style.border = "1px solid #eaecf0";
                 wrap.style.borderRadius = "12px";
@@ -507,6 +507,7 @@
                 rb.type = "radio";
                 rb.name = "primaryNewRadio";
                 rb.value = choiceValue;
+                rb.checked = !!checked;
 
                 rb.addEventListener('change', () => {
                     // chọn bìa từ ảnh mới => clear chọn bìa ảnh cũ
@@ -529,28 +530,47 @@
 
             function rebuild() {
                 clearGrid();
-                primaryChoice.value = "auto";
 
                 const files = fileInput && fileInput.files ? Array.from(fileInput.files) : [];
                 files.forEach((f, i) => addCard({
                     src: URL.createObjectURL(f),
                     label: `[Upload] ${f.name}`,
-                    choiceValue: `upload:${i}`
+                    choiceValue: `upload:${i}`,
+                    checked: (primaryChoice.value === `upload:${i}`)
                 }));
 
                 const urls = parseUrls(urlTextarea ? urlTextarea.value : "");
                 urls.forEach((u, i) => addCard({
                     src: u,
                     label: `[URL-${getUrlMode()}] ${u}`,
-                    choiceValue: (getUrlMode() === "download" ? `download:${i}` : `url:${i}`)
+                    choiceValue: (getUrlMode() === "download" ? `download:${i}` : `url:${i}`),
+                    checked: (primaryChoice.value === (getUrlMode() === "download" ? `download:${i}` : `url:${i}`))
                 }));
 
                 const statics = staticChecks().map(x => x.value);
                 statics.forEach((p, i) => addCard({
                     src: p,
                     label: `[Static] ${p}`,
-                    choiceValue: `static:${i}`
+                    choiceValue: `static:${i}`,
+                    checked: (primaryChoice.value === `static:${i}`)
                 }));
+
+                // Nếu không có ảnh mới nào trùng với primaryChoice hiện tại, và không có ảnh bìa cũ nào được tick
+                const anyOldChecked = primaryImageIdRadios().some(r => r.checked);
+                if (!anyOldChecked && grid.children.length > 0) {
+                    const anyNewChecked = Array.from(document.querySelectorAll('input[name="primaryNewRadio"]')).some(x => x.checked);
+                    if (!anyNewChecked) {
+                        const first = document.querySelector('input[name="primaryNewRadio"]');
+                        if (first) {
+                            first.checked = true;
+                            primaryChoice.value = first.value;
+                        } else {
+                            primaryChoice.value = "auto";
+                        }
+                    }
+                } else if (grid.children.length === 0 && !anyOldChecked) {
+                    primaryChoice.value = "auto";
+                }
             }
 
             if (fileInput) fileInput.addEventListener('change', rebuild);

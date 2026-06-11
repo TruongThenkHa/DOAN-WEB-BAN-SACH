@@ -40,6 +40,7 @@
             <div class="pd-gallery">
                 <div class="pd-main-image-wrapper">
                     <img id="mainImage" src="@primaryImage" alt="@Model.Title"
+                         asp-append-version="true"
                          onerror="this.src='/images/no-image.png'" />
                     @if (images.Count > 1)
                     {
@@ -64,6 +65,7 @@
                                 <div class="pd-thumb @(i == 0 ? "active" : "")"                             onclick="selectImage(@i, this)"
                                      data-src="@images[i].ImagePath">
                                     <img src="@images[i].ImagePath" alt="Ảnh @(i + 1)"
+                                         asp-append-version="true"
                                          onerror="this.src='/images/no-image.png'" />
                                 </div>
                             }
@@ -206,7 +208,9 @@
 
                         <a asp-controller="Home" asp-action="ProductDetail"                asp-route-id="@related.BookID" class="related-card">
                             <div class="related-img-wrapper">
-                                <img src="@relImgSrc" alt="@related.Title"  onerror="this.src='/images/no-image.png'" />
+                                <img src="@relImgSrc" alt="@related.Title"
+                                     asp-append-version="true"
+                                     onerror="this.src='/images/no-image.png'" />
                             </div>
                             <div class="related-body">
                                 @if (related.Category != null)
