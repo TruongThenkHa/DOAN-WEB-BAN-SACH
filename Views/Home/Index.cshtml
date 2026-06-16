@@ -65,11 +65,24 @@
     }
 
     <div class="container mt-5" style="max-width: 1200px;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="text-primary fw-bold">Sách Mới Xuất Bản</h2>
-            <a asp-controller="Home" asp-action="ProductList" class="btn btn-outline-primary btn-sm">Xem tất cả</a>
-        </div>
+       <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold flex-grow-1 text-center mb-0"
+        style="background: linear-gradient(90deg,#FFA726,#FF6B00);
+               -webkit-background-clip: text;
+               -webkit-text-fill-color: transparent;">
+        SÁCH MỚI XUẤT BẢN
+    </h2>
 
+   <a asp-controller="Home"
+   asp-action="ProductList"
+   class="btn btn-sm"
+   style="
+       border: 1px solid #E65100;
+       color: #E65100;
+       background-color: transparent;">
+    Xem tất cả
+</a>
+</div>
         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4">
             @if (latestBooks.Any())
             {

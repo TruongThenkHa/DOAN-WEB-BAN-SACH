@@ -42,22 +42,37 @@
     }
 
     .checkout-btn {
-        display: block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
         width: 250px;
         margin: 30px auto 0;
         padding: 12px;
         font-size: 18px;
+        font-weight: 600;
         border-radius: 30px;
+        background: linear-gradient(135deg, #ff5722, #ff7043) !important;
+        color: #fff !important;
+        border: none !important;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(255, 87, 34, 0.3);
+        text-decoration: none;
+    }
+
+    .checkout-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 87, 34, 0.4);
     }
 </style>
 
 <div class="cart-container">
-    <div class="cart-title">🛒 Giỏ hàng của bạn</div>
+    <div class="cart-title">🛒 GIỎ HÀNG CỦA BẠN</div>
 
     @if (!(Model?.Any() ?? false))
     {
         <div class="text-center text-muted">
-            Giỏ hàng đang trống 🥲
+            GIỎ HÀNG ĐANG TRỐNG 🥲
         </div>
     }
     else
@@ -107,8 +122,10 @@
             Tổng cộng: @total.ToString("N0") đ
         </div>
 
-        <a asp-action="Checkout" class="btn btn-success checkout-btn">
-            Thanh toán ngay
-        </a>
+        <div class="text-center">
+            <a asp-action="Checkout" class="btn checkout-btn">
+                <i class="fas fa-bolt"></i> Thanh toán ngay
+            </a>
+        </div>
     }
 </div>

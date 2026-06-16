@@ -1,5 +1,5 @@
-﻿// ===== GLOBAL VARIABLES =====
-let currentSlide = 0;
+// ===== GLOBAL VARIABLES =====
+let heroCurrentSlide = 0;
 let cartTotal = 0;
 let cartCount = 0;
 let sliderInterval;
@@ -21,24 +21,25 @@ document.addEventListener("click", () => {
 // ===== HERO SLIDER =====
 function initSlider() {
     const sliderContainer = document.getElementById('sliderContainer');
+    if (!sliderContainer) return;
     const dots = document.querySelectorAll('.slider-dot');
     const totalSlides = 3;
     
     // Auto slide every 5 seconds
     sliderInterval = setInterval(() => {
-        currentSlide = (currentSlide + 1) % totalSlides;
+        heroCurrentSlide = (heroCurrentSlide + 1) % totalSlides;
         updateSlider();
     }, 5000);
 }
 
 function goToSlide(slideIndex) {
-    currentSlide = slideIndex;
+    heroCurrentSlide = slideIndex;
     updateSlider();
     
     // Reset auto slide timer
     clearInterval(sliderInterval);
     sliderInterval = setInterval(() => {
-        currentSlide = (currentSlide + 1) % 3;
+        heroCurrentSlide = (heroCurrentSlide + 1) % 3;
         updateSlider();
     }, 5000);
 }
@@ -48,11 +49,11 @@ function updateSlider() {
     const dots = document.querySelectorAll('.slider-dot');
     
     // Move slider
-    sliderContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
+    sliderContainer.style.transform = `translateX(-${heroCurrentSlide * 100}%)`;
     
     // Update dots
     dots.forEach((dot, index) => {
-        if (index === currentSlide) {
+        if (index === heroCurrentSlide) {
             dot.classList.add('active');
         } else {
             dot.classList.remove('active');
@@ -380,6 +381,83 @@ function addAnimationStyles() {
     document.head.appendChild(style);
 }
 
+// ===== SEARCH SUGGESTIONS (AUTOCOMPLETE) =====
+function setupSearchAutocomplete(options) {
+    const searchInput = document.getElementById(options.inputId);
+    const suggestionsDropdown = document.getElementById(options.dropdownId);
+    if (!searchInput || !suggestionsDropdown) return;
+
+    let debounceTimer;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const query = searchInput.value.trim();
+
+        if (query.length < 1) {
+            suggestionsDropdown.innerHTML = '';
+            suggestionsDropdown.style.display = 'none';
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            fetch(`${options.url}?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    suggestionsDropdown.innerHTML = '';
+                    if (data && data.length > 0) {
+                        data.forEach(itemData => {
+                            const item = document.createElement('a');
+                            item.className = 'suggestion-item';
+                            item.href = 'javascript:void(0);';
+                            
+                            // Render template
+                            if (options.renderItem) {
+                                item.innerHTML = options.renderItem(itemData);
+                            } else {
+                                item.innerHTML = `<span class="suggestion-title">${itemData.name || itemData.title}</span>`;
+                            }
+
+                            // Click handler
+                            item.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                if (options.onClick) {
+                                    options.onClick(itemData, searchInput, suggestionsDropdown);
+                                } else {
+                                    // Default behavior: fill input and submit parent form
+                                    searchInput.value = itemData.name || itemData.title;
+                                    suggestionsDropdown.style.display = 'none';
+                                    const form = searchInput.closest('form');
+                                    if (form) form.submit();
+                                }
+                            });
+
+                            suggestionsDropdown.appendChild(item);
+                        });
+                        suggestionsDropdown.style.display = 'block';
+                    } else {
+                        suggestionsDropdown.innerHTML = `<div class="suggestion-empty">${options.emptyText || 'Không tìm thấy kết quả nào'}</div>`;
+                        suggestionsDropdown.style.display = 'block';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching suggestions:', err);
+                });
+        }, 300);
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
+            suggestionsDropdown.style.display = 'none';
+        }
+    });
+
+    searchInput.addEventListener('focus', function() {
+        if (searchInput.value.trim().length >= 1) {
+            suggestionsDropdown.style.display = 'block';
+        }
+    });
+}
+
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize all features
@@ -391,6 +469,127 @@ document.addEventListener('DOMContentLoaded', function() {
     initScrollToTop();
     addAnimationStyles();
     
+    // Initialize search autocomplete suggestions
+    // Public search inputs
+    setupSearchAutocomplete({
+        inputId: 'globalSearchInput',
+        dropdownId: 'searchSuggestions',
+        url: '/Home/SearchSuggestions',
+        emptyText: 'Không tìm thấy sách nào gần giống từ tra',
+        renderItem: function(book) {
+            const formattedPrice = new Intl.NumberFormat('vi-VN').format(book.price) + ' ₫';
+            return `
+                <img src="${book.image}" alt="${book.title}" class="suggestion-image" onerror="this.src='/images/no-image.png'">
+                <div class="suggestion-info">
+                    <span class="suggestion-title">${book.title}</span>
+                    <span class="suggestion-price">${formattedPrice}</span>
+                </div>
+            `;
+        },
+        onClick: function(book) {
+            window.location.href = `/Home/ProductDetail/${book.id}`;
+        }
+    });
+
+    setupSearchAutocomplete({
+        inputId: 'sidebarSearchInput',
+        dropdownId: 'sidebarSearchSuggestions',
+        url: '/Home/SearchSuggestions',
+        emptyText: 'Không tìm thấy sách nào gần giống từ tra',
+        renderItem: function(book) {
+            const formattedPrice = new Intl.NumberFormat('vi-VN').format(book.price) + ' ₫';
+            return `
+                <img src="${book.image}" alt="${book.title}" class="suggestion-image" onerror="this.src='/images/no-image.png'">
+                <div class="suggestion-info">
+                    <span class="suggestion-title">${book.title}</span>
+                    <span class="suggestion-price">${formattedPrice}</span>
+                </div>
+            `;
+        },
+        onClick: function(book) {
+            window.location.href = `/Home/ProductDetail/${book.id}`;
+        }
+    });
+
+    // Admin Book Search (Index & Hidden)
+    setupSearchAutocomplete({
+        inputId: 'adminBooksSearchInput',
+        dropdownId: 'adminBooksSearchSuggestions',
+        url: '/Home/SearchSuggestions',
+        emptyText: 'Không tìm thấy sách nào gần giống từ tra',
+        renderItem: function(book) {
+            return `
+                <img src="${book.image}" alt="${book.title}" class="suggestion-image" onerror="this.src='/images/no-image.png'">
+                <div class="suggestion-info">
+                    <span class="suggestion-title">${book.title}</span>
+                </div>
+            `;
+        }
+    });
+
+    // Admin Category Search
+    setupSearchAutocomplete({
+        inputId: 'adminCategoriesSearchInput',
+        dropdownId: 'adminCategoriesSearchSuggestions',
+        url: '/Home/CategorySuggestions',
+        emptyText: 'Không tìm thấy danh mục nào gần giống',
+        renderItem: function(cat) {
+            return `<div class="suggestion-info"><span class="suggestion-title">${cat.name}</span></div>`;
+        }
+    });
+
+    // Admin Publisher Search
+    setupSearchAutocomplete({
+        inputId: 'adminPublishersSearchInput',
+        dropdownId: 'adminPublishersSearchSuggestions',
+        url: '/Home/PublisherSuggestions',
+        emptyText: 'Không tìm thấy NXB nào gần giống',
+        renderItem: function(pub) {
+            return `<div class="suggestion-info"><span class="suggestion-title">${pub.name}</span></div>`;
+        }
+    });
+
+    // Admin Author Search
+    setupSearchAutocomplete({
+        inputId: 'adminAuthorsSearchInput',
+        dropdownId: 'adminAuthorsSearchSuggestions',
+        url: '/Home/AuthorSuggestions',
+        emptyText: 'Không tìm thấy tác giả nào gần giống',
+        renderItem: function(auth) {
+            return `<div class="suggestion-info"><span class="suggestion-title">${auth.name}</span></div>`;
+        }
+    });
+
+    // Admin Global Search
+    setupSearchAutocomplete({
+        inputId: 'adminGlobalSearchInput',
+        dropdownId: 'adminGlobalSearchSuggestions',
+        url: '/Admin/GlobalSearchSuggestions',
+        emptyText: 'Không tìm thấy kết quả nào',
+        renderItem: function(item) {
+            let badgeColor = '#6c757d';
+            let categoryName = 'Hệ thống';
+            if (item.type === 'book') { badgeColor = '#28a745'; categoryName = 'Sách'; }
+            else if (item.type === 'category') { badgeColor = '#007bff'; categoryName = 'Danh mục'; }
+            else if (item.type === 'author') { badgeColor = '#17a2b8'; categoryName = 'Tác giả'; }
+            else if (item.type === 'publisher') { badgeColor = '#ffc107'; categoryName = 'NXB'; }
+            else if (item.type === 'order') { badgeColor = '#dc3545'; categoryName = 'Đơn hàng'; }
+            
+            return `
+                <div class="suggestion-info" style="padding: 4px 0; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                        <span class="suggestion-title" style="font-weight: 600; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 75%;">${item.title}</span>
+                        <span class="badge" style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; flex-shrink: 0;">${categoryName}</span>
+                    </div>
+                    ${item.subtitle ? `<span style="font-size: 11px; color: #777; overflow: hidden; text-overflow: ellipsis; display: block; white-space: nowrap;">${item.subtitle}</span>` : ''}
+                </div>
+            `;
+        },
+        onClick: function(item) {
+            window.location.href = item.redirectUrl;
+        }
+    });
+    
     console.log('Website loaded successfully!');
 });
 
@@ -398,9 +597,8 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
         const form = e.target.closest('form');
-        if (form && !form.classList.contains('newsletter-form')) {
+        if (form && !form.classList.contains('newsletter-form') && !form.classList.contains('search-box')) {
             e.preventDefault();
         }
     }
-
 });

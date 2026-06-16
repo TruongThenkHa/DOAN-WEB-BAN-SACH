@@ -43,6 +43,12 @@ namespace Book_Store.Models
         public string Password { get; set; } = string.Empty;
         public string ConfirmPassword { get; set; } = string.Empty;
 
+        [StringLength(50)]
+        public string? PhoneNumber { get; set; }
+
+        [Column(TypeName = "date")]
+        public DateTime? DateOfBirth { get; set; }
+
         // Navigation properties
         public virtual ICollection<Order> Orders { get; set; }
     }

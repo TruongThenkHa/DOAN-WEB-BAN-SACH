@@ -66,14 +66,13 @@
 .pl-sidebar {
     width: 260px;
     flex-shrink: 0;
-    position: sticky;
     top: 80px;
     /* khoảng cách từ sticky header */
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
     padding: 0 0 12px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .sidebar-section {

@@ -2,6 +2,15 @@
 
 <h2>Danh sách đơn hàng</h2>
 
+<form method="get" class="mb-3 d-flex gap-2" style="max-width: 450px;">
+    <input type="text" name="q" value="@ViewBag.CurrentQ" class="form-control" placeholder="Tìm theo mã đơn, khách hàng, số điện thoại..." />
+    <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+    @if (!string.IsNullOrEmpty(ViewBag.CurrentQ))
+    {
+        <a href="/Admin/OrderList" class="btn btn-secondary">Reset</a>
+    }
+</form>
+
 <table class="table table-bordered">
     <thead>
         <tr>

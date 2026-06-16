@@ -9,6 +9,8 @@ namespace Book_Store.Models
 
         public string CustomerName { get; set; } = string.Empty;
 
+        public string PhoneNumber { get; set; } = string.Empty;
+
         public string ShippingAddress { get; set; } = string.Empty;
 
         public string PaymentMethod { get; set; } = string.Empty;
@@ -18,6 +20,8 @@ namespace Book_Store.Models
         public decimal TotalAmount { get; set; }
 
         public OrderStatus Status { get; set; }
+
+        public int? UserID { get; set; }
 
         public List<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
     }

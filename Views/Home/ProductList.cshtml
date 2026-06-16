@@ -57,13 +57,6 @@
         <aside class="pl-sidebar">
             <form method="get" asp-controller="Home" asp-action="ProductList" id="filterForm">
 
-                <div class="sidebar-section">
-                    <h4 class="sidebar-title"><i class="fas fa-search"></i> Tìm kiếm</h4>
-                    <div class="sb-search">
-                        <input type="text" name="q" value="@currentQ"
-                               placeholder="Tên sách..." class="sb-input" />
-                    </div>
-                </div>
 
                 <div class="sidebar-section">
                     <h4 class="sidebar-title"><i class="fas fa-th-large"></i> Danh mục</h4>
@@ -325,6 +318,10 @@
     fetch('/Cart/AddToCart?id=' + bookId)
         .then(res => res.json())
         .then(data => {
+            if (data.success === false && data.redirectUrl) {
+                window.location.href = data.redirectUrl;
+                return;
+            }
 
             btn.classList.add('adding');
             btn.innerHTML = '<i class="fas fa-check"></i> Đã thêm';

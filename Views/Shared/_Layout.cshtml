@@ -1,5 +1,7 @@
-﻿﻿@using Book_Store.Models
+@using Book_Store.Models
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Http
+@using System.Text.Json
 @inject Book_Store.Models.ApplicationDbContext _layoutDb
 <!DOCTYPE html>
 <html lang="en">
@@ -24,16 +26,17 @@
     <div class="container header-main">
         
         <a href="/" class="logo-wrapper">
-            <img src="~/images/logo.png" alt="Nhà Sách Hải An" class="logo-img">
+            <img src="~/images/logo.png" alt="Nhà Sách Hải An" class="logo-img" asp-append-version="true">
         </a>
 
         <div class="search-wrapper">
-            <form action="/Search" method="get" class="search-box">
-                <input type="text" name="q" placeholder="Bạn muốn tìm sách gì?">
+            <form action="/Home/ProductList" method="get" class="search-box">
+                <input type="text" name="q" id="globalSearchInput" placeholder="Bạn muốn tìm sách gì?" autocomplete="off">
                 <button type="submit">
                     <i class="fas fa-search"></i>
                 </button>
             </form>
+            <div id="searchSuggestions" class="search-suggestions-dropdown"></div>
         </div>
 
         <div class="actions-wrapper">
@@ -50,7 +53,7 @@
                             {
                                 <li><a class="dropdown-item" asp-controller="Admin" asp-action="Index">Quản trị</a></li>
                             }
-                            <li><a class="dropdown-item" href="/Order/History">Đơn hàng</a></li>
+                            <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">Thông tin cá nhân</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form asp-controller="Account" asp-action="Logout" method="post">
@@ -70,9 +73,32 @@
                 }
             </div>
 
- <a asp-controller="Cart" asp-action="Index">
+@{
+    var layoutCartKey = "cart_guest";
+    if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            layoutCartKey = $"cart_{userId}";
+        }
+    }
+    var sessionCartJson = Context.Session.GetString(layoutCartKey);
+    var sessionCartCount = 0;
+    if (!string.IsNullOrEmpty(sessionCartJson))
+    {
+        try
+        {
+            var sessionCart = JsonSerializer.Deserialize<List<CartItem>>(sessionCartJson);
+            sessionCartCount = sessionCart?.Sum(x => x.Quantity) ?? 0;
+        }
+        catch {}
+    }
+}
+ <a asp-controller="Cart" asp-action="Index" class="cart-icon-wrapper">
     <i class="fa fa-shopping-cart"></i>
-</a>
+    <span id="cartCount" class="cart-badge">@sessionCartCount</span>
+ </a>
 
         </div>
     </div>

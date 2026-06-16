@@ -4,6 +4,7 @@ using Book_Store.ViewModel.users;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 
 namespace Book_Store.Controllers
 {
@@ -44,7 +45,9 @@ namespace Book_Store.Controllers
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
                     Role = "Customer",
                     IsActive = true,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    PhoneNumber = model.PhoneNumber,
+                    DateOfBirth = model.DateOfBirth
                 };
 
                 _context.Users.Add(user);
@@ -109,6 +112,93 @@ namespace Book_Store.Controllers
             if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
                 return Redirect(returnUrl);
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult Profile()
+        {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var userIdVal = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdVal, out var userId))
+            {
+                var user = _context.Users
+                    .Include(u => u.Orders)
+                        .ThenInclude(o => o.OrderDetails)
+                            .ThenInclude(od => od.Book)
+                    .FirstOrDefault(u => u.ID == userId);
+
+                if (user != null)
+                {
+                    user.Orders = user.Orders.OrderByDescending(o => o.OrderDate).ToList();
+                    return View(user);
+                }
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(User model)
+        {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var userIdVal = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdVal, out var userId))
+            {
+                var user = _context.Users
+                    .Include(u => u.Orders)
+                        .ThenInclude(o => o.OrderDetails)
+                            .ThenInclude(od => od.Book)
+                    .FirstOrDefault(u => u.ID == userId);
+
+                if (user != null)
+                {
+                    // Loại bỏ validation cho các trường không chỉnh sửa trong form này
+                    ModelState.Remove("Email");
+                    ModelState.Remove("PasswordHash");
+                    ModelState.Remove("Password");
+                    ModelState.Remove("ConfirmPassword");
+                    ModelState.Remove("Username");
+
+                    if (string.IsNullOrWhiteSpace(model.FullName))
+                    {
+                        ModelState.AddModelError("FullName", "Họ và tên không được để trống.");
+                    }
+                    if (string.IsNullOrWhiteSpace(model.PhoneNumber))
+                    {
+                        ModelState.AddModelError("PhoneNumber", "Số điện thoại không được để trống.");
+                    }
+                    if (!model.DateOfBirth.HasValue)
+                    {
+                        ModelState.AddModelError("DateOfBirth", "Ngày sinh không được để trống.");
+                    }
+
+                    if (ModelState.IsValid)
+                    {
+                        user.FullName = model.FullName;
+                        user.PhoneNumber = model.PhoneNumber;
+                        user.DateOfBirth = model.DateOfBirth;
+                        user.Address = model.Address;
+
+                        await _context.SaveChangesAsync();
+                        TempData["SuccessMessage"] = "Cập nhật thông tin cá nhân thành công!";
+                        return RedirectToAction("Profile");
+                    }
+
+                    user.Orders = user.Orders.OrderByDescending(o => o.OrderDate).ToList();
+                    return View(user);
+                }
             }
 
             return RedirectToAction("Index", "Home");

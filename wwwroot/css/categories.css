@@ -45,14 +45,14 @@ ul {
 .logo-wrapper {
     flex-shrink: 0; 
     display: block;
-    width: 220px; 
+    width: 250px; 
 }
 
 .logo-img {
     max-width: 100%;
     height: auto;
     display: block;
-    max-height: 60px; 
+    max-height: 75px; 
 }
 
 /* --- B. SEARCH BAR (Ở giữa - Tự động giãn) --- */
@@ -64,7 +64,7 @@ ul {
 .search-box {
     display: flex;
     width: 100%;
-    border: 2px solid #007bff; /* Viền xanh */
+    border: 2px solid #5C3A21; /* Viền nâu */
     border-radius: 4px;
     overflow: hidden;
 }
@@ -78,7 +78,7 @@ ul {
 }
 
 .search-box button {
-    background-color: #007bff;
+    background-color: #5C3A21;
     color: white;
     border: none;
     padding: 0 25px;
@@ -88,7 +88,7 @@ ul {
 }
 
 .search-box button:hover {
-    background-color: #0056b3;
+    background-color: #472d19;
 }
 
 /* --- C. ACTIONS (Bên phải: Login + Cart) --- */

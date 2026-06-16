@@ -19,20 +19,21 @@
 .logo-wrapper {
     flex-shrink: 0;
     display: block;
-    width: 220px; /* Độ rộng khu vực logo */
+    width: 250px; /* Độ rộng khu vực logo */
 }
 
 .logo-img {
     max-width: 100%;
     height: auto;
     display: block;
-    max-height: 60px; /* Giới hạn chiều cao logo */
+    max-height: 75px; /* Giới hạn chiều cao logo */
 }
 
 /* ================= 2. SEARCH BAR (Ở GIỮA) ================= */
 .search-wrapper {
     flex-grow: 1; /* Tự động giãn ra chiếm hết chỗ trống */
     max-width: 700px;
+    position: relative; /* Cho phép định vị hộp gợi ý tìm kiếm */
 }
 
 .search-box {
@@ -136,4 +137,83 @@
     align-items: center;
     justify-content: center;
     border: 2px solid white; /* Viền trắng tách biệt icon */
+}
+
+/* ================= SEARCH SUGGESTIONS DROPDOWN ================= */
+.search-suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #e1e8ed;
+    border-radius: 8px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    z-index: 9999;
+    max-height: 420px;
+    overflow-y: auto;
+    display: none;
+    margin-top: 8px;
+    padding: 6px 0;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid #f5f8fa;
+    cursor: pointer;
+    text-decoration: none !important;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background-color: #f8f9fa;
+    color: #007bff;
+}
+
+.suggestion-image {
+    width: 42px;
+    height: 56px;
+    object-fit: cover;
+    margin-right: 14px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    flex-shrink: 0;
+}
+
+.suggestion-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Cho phép text-overflow hoạt động */
+}
+
+.suggestion-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #2c3e50;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.suggestion-price {
+    font-size: 13px;
+    color: #e53935;
+    font-weight: 700;
+}
+
+.suggestion-empty {
+    padding: 18px;
+    text-align: center;
+    color: #7f8c8d;
+    font-size: 14px;
 }

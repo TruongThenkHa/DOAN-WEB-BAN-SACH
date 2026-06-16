@@ -16,10 +16,17 @@ namespace Book_Store.Controllers
         }
 
         // GET: /Categories
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? q)
         {
-            var categories = await _db.Categories
-                .AsNoTracking()
+            var query = _db.Categories.AsNoTracking().AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                q = q.Trim();
+                query = query.Where(c => c.Name.Contains(q));
+            }
+
+            var categories = await query
                 .OrderBy(c => c.Name)
                 .ToListAsync();
 

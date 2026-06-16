@@ -1,4 +1,13 @@
 {
-  "cSpell.words": ["Momo"],
-  "chatgpt.model": "gpt-4o-mini"
+  "cSpell.words": [
+    "Momo"
+  ],
+  "chatgpt.model": "gpt-4o-mini",
+  "python-envs.pythonProjects": [
+    {
+      "path": "wwwroot/images",
+      "envManager": "ms-python.python:venv",
+      "packageManager": "ms-python.python:pip"
+    }
+  ]
 }

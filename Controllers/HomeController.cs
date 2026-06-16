@@ -250,6 +250,109 @@ public class HomeController : Controller
         return sb.ToString();
     }
 
+    [HttpGet]
+    public async Task<IActionResult> SearchSuggestions(string? q)
+    {
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            return Json(new List<object>());
+        }
+
+        q = q.Trim().ToLower();
+
+        var books = await _db.Books
+            .AsNoTracking()
+            .Include(b => b.BookImages)
+            .Where(b => b.IsActive && b.Title.ToLower().Contains(q))
+            .OrderByDescending(b => b.CreatedAt)
+            .Take(6)
+            .Select(b => new
+            {
+                id = b.BookID,
+                title = b.Title,
+                price = b.Price,
+                image = b.BookImages.OrderByDescending(i => i.IsPrimary).ThenBy(i => i.SortOrder).Select(i => i.ImagePath).FirstOrDefault() ?? "/images/no-image.png"
+            })
+            .ToListAsync();
+
+        return Json(books);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> CategorySuggestions(string? q)
+    {
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            return Json(new List<object>());
+        }
+
+        q = q.Trim().ToLower();
+
+        var categories = await _db.Categories
+            .AsNoTracking()
+            .Where(c => c.Name.ToLower().Contains(q))
+            .OrderBy(c => c.Name)
+            .Take(6)
+            .Select(c => new
+            {
+                id = c.CategoryID,
+                name = c.Name
+            })
+            .ToListAsync();
+
+        return Json(categories);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> PublisherSuggestions(string? q)
+    {
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            return Json(new List<object>());
+        }
+
+        q = q.Trim().ToLower();
+
+        var publishers = await _db.Publishers
+            .AsNoTracking()
+            .Where(p => p.Name.ToLower().Contains(q))
+            .OrderBy(p => p.Name)
+            .Take(6)
+            .Select(p => new
+            {
+                id = p.PublisherID,
+                name = p.Name
+            })
+            .ToListAsync();
+
+        return Json(publishers);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> AuthorSuggestions(string? q)
+    {
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            return Json(new List<object>());
+        }
+
+        q = q.Trim().ToLower();
+
+        var authors = await _db.Authors
+            .AsNoTracking()
+            .Where(a => a.Name.ToLower().Contains(q))
+            .OrderBy(a => a.Name)
+            .Take(6)
+            .Select(a => new
+            {
+                id = a.AuthorID,
+                name = a.Name
+            })
+            .ToListAsync();
+
+        return Json(authors);
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

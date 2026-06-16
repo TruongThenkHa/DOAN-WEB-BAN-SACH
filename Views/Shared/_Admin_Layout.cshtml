@@ -28,11 +28,6 @@
     <div class="admin-wrapper">
 
         <aside class="admin-sidebar" id="adminSidebar">
-            <div class="sidebar-logo">
-                <a href="/Home/Index" class="home-link" title="Về trang chủ">
-                    <img src="~/images/logo.png" alt="Admin Logo" class="logo-img" style="width:auto; height:40px;">
-                </a>
-            </div>
 
             <ul class="sidebar-menu">
                 <li class="menu-item @ActiveClass("/admin")">
@@ -91,13 +86,22 @@
 
             <header class="admin-header">
                 <div class="header-left">
+                    <a href="/Home/Index" class="logo-header-container" title="Về trang chủ">
+                        <img src="~/images/logo.png" alt="Admin Logo" asp-append-version="true">
+                    </a>
+
                     <button class="menu-toggle" id="btnToggleSidebar" type="button" aria-label="Toggle sidebar">
                         <i class="fas fa-bars"></i>
                     </button>
 
-                    <div class="header-search">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" placeholder="Search">
+                    <div class="admin-search-wrapper" style="margin-left: 20px;">
+                        <form action="/Books/Index" method="get" class="admin-search-box">
+                            <input type="text" name="q" id="adminGlobalSearchInput" placeholder="Tìm sách, tác giả, danh mục, đơn hàng..." autocomplete="off">
+                            <button type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </form>
+                        <div id="adminGlobalSearchSuggestions" class="search-suggestions-dropdown"></div>
                     </div>
                 </div>
 
@@ -121,6 +125,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
 
     <script>
         (function () {
@@ -157,3 +162,6 @@
 </body>
 
 </html>
+
+
+    

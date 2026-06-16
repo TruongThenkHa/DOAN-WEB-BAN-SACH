@@ -11,34 +11,30 @@
 
 .menu-item.active > a {
   background: rgba(34, 197, 94, 0.15); /* xanh */
-  color: #22c55e;
-  border-left: 4px solid #22c55e;
+  color: #F4BB3F;
+  border-left: 4px solid #F4BB3F;
   transform: translateX(2px);
 }
 
 .menu-item.active i {
-  color: #22c55e;
+  color: #F4BB3F;
 }
 
 /* collapse sidebar (ẩn/hiện) */
 .admin-sidebar {
-  transition:
-    width 0.2s ease,
-    transform 0.2s ease;
+  transition: width 0.2s ease;
 }
 
 .admin-sidebar.collapsed {
-  width: 76px; /* tùy chỉnh */
+  width: 76px;
+  overflow: hidden; /* Ẩn chữ khi thu nhỏ */
 }
 
-body.sidebar-collapsed .admin-main {
-  transition: margin-left 0.2s ease;
+.admin-sidebar.collapsed .menu-item a,
+.admin-sidebar.collapsed .logout-btn {
+  white-space: nowrap; /* Tránh chữ rớt dòng */
 }
 
-/* nếu layout đang dùng margin-left theo sidebar width thì chỉnh theo project của bạn:
-   ví dụ: .admin-main { margin-left: 260px; }
-   và khi collapsed:
-*/
 body.sidebar-collapsed .admin-main {
   margin-left: 76px;
 }
@@ -72,17 +68,21 @@ ul {
    2. SIDEBAR (CỘT TRÁI)
    ========================================= */
 .admin-sidebar {
+  position: fixed;
+  top: 80px; /* Dưới header */
+  left: 0;
+  bottom: 0;
   width: 260px;
-  background-color: #ffffff;
+  background-color: #EC9345;
   border-right: 1px solid #eaedf1;
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
+  z-index: 999;
 }
 
 /* --- Logo --- */
 .sidebar-logo {
-  padding: 20px;
+  padding: 20px 20px 20px 10px;
   height: 80px; /* Bằng với chiều cao header bên phải */
   display: flex;
   align-items: center;
@@ -94,6 +94,32 @@ ul {
   color: #f36f21;
   font-weight: bold;
   font-size: 18px;
+}
+.logo-header-container {
+  width: 260px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border-right: 1px solid #eaedf1;
+  transition: width 0.2s ease, padding 0.2s ease;
+  box-sizing: border-box;
+  margin-right: 0;
+}
+.logo-header-container img {
+  max-width: 100%;
+  height: auto;
+  max-height: 50px;
+  transition: opacity 0.15s ease;
+}
+body.sidebar-collapsed .logo-header-container {
+  width: 76px;
+  padding: 0 10px;
+}
+body.sidebar-collapsed .logo-header-container img {
+  opacity: 0;
+  pointer-events: none;
 }
 .logo-icon {
   background-color: #f36f21;
@@ -111,6 +137,7 @@ ul {
 .sidebar-menu {
   flex-grow: 1; /* Đẩy phần bottom xuống đáy */
   padding: 15px;
+  padding-top: 30px; /* Thêm khoảng cách ở đầu */
   overflow-y: auto;
 }
 
@@ -123,7 +150,7 @@ ul {
   align-items: center;
   gap: 15px;
   padding: 12px 20px;
-  color: #555;
+  color: #ffffff;
   border-radius: 8px; /* Bo góc nút menu */
   font-weight: 500;
   font-size: 15px;
@@ -132,13 +159,13 @@ ul {
 
 .menu-item a:hover {
   background-color: #f8f9fa;
-  color: #4361ee;
+  color: #555;
 }
 
 /* Khi đang chọn (Active) */
 .menu-item.active a {
-  background-color: #4b7bec; /* Màu xanh dương giống hình */
-  color: white;
+  background-color: #f8f9fa; /* Màu xanh dương giống hình */
+  color: #555;
   box-shadow: 0 4px 10px rgba(75, 123, 236, 0.3);
 }
 
@@ -151,6 +178,7 @@ ul {
 /* --- Menu Bottom (Cài đặt, Đăng xuất) --- */
 .sidebar-bottom {
   padding: 15px;
+  margin-top: auto; /* Đưa Logout sát đáy sidebar */
 }
 
 .logout-item {
@@ -167,7 +195,7 @@ ul {
   align-items: center;
   gap: 15px;
   padding: 12px 20px;
-  color: #555;
+  color: #ffffff;
   font-weight: 500;
   font-size: 15px;
   cursor: pointer;
@@ -184,20 +212,29 @@ ul {
    3. MAIN CONTENT (BÊN PHẢI)
    ========================================= */
 .admin-main {
+  margin-top: 80px; /* Chừa khoảng trống cho fixed header */
+  margin-left: 260px; /* Chừa khoảng trống cho fixed sidebar */
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  height: calc(100vh - 80px);
   overflow: hidden;
+  transition: margin-left 0.2s ease;
 }
 
 /* --- Header --- */
 .admin-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 80px;
-  background-color: #ffffff;
+  background-color: #EC9345;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 30px;
+  padding: 0 30px 0 0; /* No left padding, logo starts at 0px */
   border-bottom: 1px solid #eaedf1;
 }
 
@@ -216,26 +253,42 @@ ul {
 }
 
 /* Thanh Search */
-.header-search {
+.admin-search-wrapper {
+  position: relative;
+  width: 450px;
+}
+
+.admin-search-box {
   display: flex;
-  align-items: center;
-  background-color: #f1f3f5;
-  padding: 10px 20px;
-  border-radius: 20px; /* Bo tròn thanh search */
-  width: 300px;
-}
-
-.header-search input {
-  border: none;
-  background: transparent;
-  outline: none;
-  margin-left: 10px;
   width: 100%;
-  font-size: 14px;
+  border: 2px solid #5C3A21; /* Viền nâu */
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: white;
 }
 
-.search-icon {
-  color: #888;
+.admin-search-box input {
+  flex-grow: 1;
+  border: none;
+  padding: 8px 12px;
+  font-size: 14px;
+  outline: none;
+  background-color: white;
+  color: #333;
+}
+
+.admin-search-box button {
+  background-color: #5C3A21;
+  color: white;
+  border: none;
+  padding: 0 20px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+.admin-search-box button:hover {
+  background-color: #472d19;
 }
 
 /* User Profile */
@@ -253,18 +306,18 @@ ul {
 
 .user-name {
   font-weight: 600;
-  font-size: 14px;
-  color: #333;
+  font-size: 16px;
+  color: #ffff;
 }
 
 .user-role {
-  font-size: 12px;
-  color: #888;
+  font-size: 14px;
+  color: #E7E1E1;
 }
 
 .avatar-icon {
   font-size: 35px;
-  color: #ccc;
+  color: #ffffff;
 }
 
 /* --- Vùng chứa Nội dung RenderBody() --- */
@@ -272,4 +325,83 @@ ul {
   padding: 30px;
   flex-grow: 1;
   overflow-y: auto; /* Nếu nội dung dài, chỉ cuộn vùng này */
+}
+
+/* ================= SEARCH SUGGESTIONS DROPDOWN ================= */
+.search-suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #e1e8ed;
+    border-radius: 8px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    z-index: 9999;
+    max-height: 320px;
+    overflow-y: auto;
+    display: none;
+    margin-top: 8px;
+    padding: 6px 0;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid #f5f8fa;
+    cursor: pointer;
+    text-decoration: none !important;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background-color: #f8f9fa;
+    color: #007bff;
+}
+
+.suggestion-image {
+    width: 30px;
+    height: 40px;
+    object-fit: cover;
+    margin-right: 12px;
+    border-radius: 3px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    flex-shrink: 0;
+}
+
+.suggestion-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.suggestion-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: #2c3e50;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.suggestion-price {
+    font-size: 12px;
+    color: #e53935;
+    font-weight: 700;
+}
+
+.suggestion-empty {
+    padding: 14px;
+    text-align: center;
+    color: #7f8c8d;
+    font-size: 13px;
 }

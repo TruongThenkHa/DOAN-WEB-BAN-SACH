@@ -25,34 +25,35 @@
 
 <div class="admin-page">
     <div class="page-header">
-        <h1 class="page-title">Sách đang hiển thị</h1>
+        <h1 class="page-title">SÁCH ĐANG HIỂN THỊ</h1>
 
         <div class="toolbar">
-            <form method="get" class="search-box" asp-action="Index">
+            <form method="get" class="search-box" asp-action="Index" style="position: relative;">
                 <svg class="search-icon" viewBox="0 0 24 24" fill="none">
                     <path d="M21 21l-4.3-4.3m1.3-5.2a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2"
                           stroke-linecap="round" />
                 </svg>
-                <input name="q" value="@q" placeholder="Tìm kiếm theo tên, mô tả, ID" />
+                <input name="q" id="adminBooksSearchInput" value="@q" placeholder="Tìm kiếm theo tên, mô tả, ID" autocomplete="off" />
+                <div id="adminBooksSearchSuggestions" class="search-suggestions-dropdown"></div>
 
-                <select name="categoryId" class="input" style="min-width:160px; margin-left:8px;"
+                <select name="categoryId" class="input" style="min-width:160px;"
                         asp-items="(SelectList)ViewBag.CategoryID">
                     <option value="">-- Tất cả danh mục --</option>
                 </select>
 
-                <select name="publisherId" class="input" style="min-width:160px; margin-left:8px;"
+                <select name="publisherId" class="input" style="min-width:160px;"
                         asp-items="(SelectList)ViewBag.PublisherID">
                     <option value="">-- Tất cả NXB --</option>
                 </select>
 
-                <button type="submit" class="btn btn-ghost" style="margin-left:8px;">Lọc</button>
+                <button type="submit" class="btn btn-ghost">Lọc</button>
             </form>
 
             <a class="btn btn-primary" asp-action="Create">
                 + Thêm sách
             </a>
 
-            <a class="btn btn-ghost" asp-action="Hidden" style="margin-left:8px;">
+            <a class="btn btn-ghost" asp-action="Hidden">
                 Sách đã ẩn
             </a>
         </div>

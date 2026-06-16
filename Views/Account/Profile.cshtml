@@ -1,0 +1,232 @@
+@model Book_Store.Models.User
+
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+
+<div class="container my-5" style="max-width: 1000px;">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px;">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px;">
+            <i class="fas fa-exclamation-circle me-2"></i> <strong>Vui lòng kiểm tra lại thông tin:</strong>
+            <ul class="mb-0 mt-2">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="card profile-card border-0">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <div class="col-md-4 profile-sidebar py-4 px-2">
+                <div class="text-center mb-4">
+                    <div class="d-inline-block position-relative mb-3">
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center border" style="width: 100px; height: 100px;">
+                            <i class="fas fa-user-circle text-secondary" style="font-size: 80px;"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">@(Model.FullName ?? "Thành viên")</h5>
+                    <p class="text-muted small mb-0">@Model.Email</p>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="javascript:void(0)" onclick="switchTab('profile-info', this)" class="profile-sidebar-item active" id="tab-btn-info">
+                        <i class="fas fa-user me-2"></i> Thông tin tài khoản
+                    </a>
+                    <a href="javascript:void(0)" onclick="switchTab('profile-orders', this)" class="profile-sidebar-item" id="tab-btn-orders">
+                        <i class="fas fa-shopping-bag me-2"></i> ĐƠN HÀNG CỦA TÔI
+                    </a>
+                    <form asp-controller="Account" asp-action="Logout" method="post" onsubmit="return confirm('Bạn có chắc muốn đăng xuất?')">
+                        <button type="submit" class="profile-sidebar-item border-0 w-100 text-start bg-transparent text-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Details Form -->
+            <div id="profile-info" class="tab-content col-md-8 p-4 p-md-5">
+                <h4 class="fw-bold text-dark mb-4"><i class="fas fa-id-card text-orange me-2"></i>Hồ sơ cá nhân</h4>
+                
+                <form asp-action="Profile" asp-controller="Account" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">Email đăng ký</label>
+                            <input type="email" class="form-control bg-light border-0" value="@Model.Email" readonly disabled style="border-radius: 8px; padding: 10px 14px;" />
+                            <small class="text-muted">Email đăng ký không thể thay đổi</small>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">Tên đăng nhập</label>
+                            <input type="text" class="form-control bg-light border-0" value="@Model.Username" readonly disabled style="border-radius: 8px; padding: 10px 14px;" />
+                            <small class="text-muted">Tên đăng nhập không thể thay đổi</small>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label class="form-label text-muted small fw-bold">Họ và tên</label>
+                            <input type="text" name="FullName" class="form-control border-2" value="@Model.FullName" required style="border-radius: 8px; padding: 10px 14px;" />
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">Số điện thoại</label>
+                            <input type="text" name="PhoneNumber" class="form-control border-2" value="@Model.PhoneNumber" required style="border-radius: 8px; padding: 10px 14px;" />
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">Ngày sinh</label>
+                            <input type="date" name="DateOfBirth" class="form-control border-2" value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))" required style="border-radius: 8px; padding: 10px 14px;" />
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label class="form-label text-muted small fw-bold">Địa chỉ giao hàng mặc định</label>
+                            <input type="text" name="Address" class="form-control border-2" value="@Model.Address" placeholder="Nhập địa chỉ của bạn..." style="border-radius: 8px; padding: 10px 14px;" />
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+                        <button type="submit" class="btn btn-orange-gradient">
+                            <i class="fas fa-save me-2"></i> Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Orders Timeline -->
+            <div id="profile-orders" class="tab-content col-md-8 p-4 p-md-5" style="display: none;">
+                <h4 class="fw-bold text-dark mb-4"><i class="fas fa-shopping-bag text-orange me-2"></i>ĐƠN HÀNG CỦA TÔI</h4>
+                
+                @if (Model.Orders == null || !Model.Orders.Any())
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-box-open fs-1 text-secondary mb-3" style="font-size: 3rem;"></i>
+                        <p class="mb-0">Bạn chưa có đơn hàng nào.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="orders-timeline" style="max-height: 550px; overflow-y: auto; padding-right: 10px;">
+                        @foreach (var order in Model.Orders)
+                        {
+                            <div class="card border mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0 !important;">
+                                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div>
+                                        <span class="text-muted small">Mã đơn: </span>
+                                        <span class="fw-bold text-dark">#@order.OrderID</span>
+                                        <span class="text-muted mx-2">|</span>
+                                        <span class="text-muted small">Ngày đặt: </span>
+                                        <span class="text-dark">@order.OrderDate.ToString("dd/MM/yyyy")</span>
+                                    </div>
+                                    <div>
+                                        @{
+                                            string statusText = "";
+                                            string statusClass = "";
+                                            switch (order.Status.ToString())
+                                            {
+                                                case "Received":
+                                                    statusText = "Đã nhận đơn";
+                                                    statusClass = "bg-info text-white";
+                                                    break;
+                                                case "Processing":
+                                                    statusText = "Đang xử lý";
+                                                    statusClass = "bg-warning text-dark";
+                                                    break;
+                                                case "Completed":
+                                                    statusText = "Hoàn thành";
+                                                    statusClass = "bg-success text-white";
+                                                    break;
+                                                case "Cancelled":
+                                                    statusText = "Đã hủy";
+                                                    statusClass = "bg-danger text-white";
+                                                    break;
+                                                default:
+                                                    statusText = order.Status.ToString();
+                                                    statusClass = "bg-secondary text-white";
+                                                    break;
+                                            }
+                                        }
+                                        <span class="badge @statusClass rounded-pill px-3 py-2" style="font-size: 0.8rem; font-weight: 500;">
+                                            @statusText
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body pt-0 pb-3">
+                                    <div class="border-top border-bottom py-2 my-2" style="border-top: 1px dashed #e2e8f0 !important; border-bottom: 1px dashed #e2e8f0 !important;">
+                                        <h6 class="text-muted small fw-bold mb-2">Sản phẩm đã mua:</h6>
+                                        <ul class="list-unstyled mb-0">
+                                            @foreach (var detail in order.OrderDetails)
+                                            {
+                                                <li class="d-flex justify-content-between align-items-center my-1">
+                                                    <span class="text-dark" style="font-size: 0.9rem;">
+                                                        <i class="fas fa-book text-muted me-2" style="font-size: 0.8rem;"></i>@(detail.Book?.Title ?? "Sách không xác định")
+                                                    </span>
+                                                    <span class="text-muted small">x @detail.Quantity</span>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center pt-2 flex-wrap gap-2">
+                                        <span class="text-muted small">Hình thức: @(order.PaymentMethod == "Momo" ? "Ví MoMo" : "Thanh toán khi nhận hàng (COD)")</span>
+                                        <div>
+                                            <span class="text-muted small">Tổng cộng: </span>
+                                            <span class="fw-bold text-danger" style="font-size: 1.1rem;">@order.TotalAmount.ToString("N0") đ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tabId, element) {
+        // Ẩn tất cả nội dung tab
+        document.querySelectorAll('.tab-content').forEach(el => {
+            el.style.display = 'none';
+        });
+        // Hiển thị tab được chọn
+        const target = document.getElementById(tabId);
+        if (target) {
+            target.style.display = 'block';
+        }
+
+        // Xóa class active ở tất cả sidebar items
+        document.querySelectorAll('.profile-sidebar-item').forEach(el => {
+            el.classList.remove('active');
+        });
+        // Thêm class active cho item được chọn
+        if (element) {
+            element.classList.add('active');
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab === 'orders') {
+            const btn = document.getElementById('tab-btn-orders');
+            if (btn) {
+                switchTab('profile-orders', btn);
+            }
+        }
+    });
+</script>

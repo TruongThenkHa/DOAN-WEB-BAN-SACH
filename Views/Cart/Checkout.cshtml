@@ -1,43 +1,297 @@
 @model List<Book_Store.Models.CartItem>
+@using Book_Store.Models
 
 @{
     ViewData["Title"] = "Thanh toán";
     var total = Model.Sum(x => x.Price * x.Quantity);
+    var currentUser = ViewBag.CurrentUser as User;
 }
 
-<div class="container mt-5" style="max-width:700px;">
-    <h3 class="text-center mb-4">Thanh toán</h3>
+<style>
+    .text-orange {
+        color: #ff5722 !important;
+    }
+    
+    .payment-method-card {
+        border: 1.5px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 18px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background-color: #fff;
+    }
 
-    <form asp-action="PlaceOrder" method="post">
+    .payment-method-card:hover {
+        border-color: #ff5722;
+    }
 
-        <div class="mb-3">
-            <label class="form-label">Địa chỉ giao hàng</label>
-            <input type="text" name="address" class="form-control" required />
+    .payment-method-card.active {
+        border-color: #ff5722;
+        background-color: rgba(255, 87, 34, 0.02);
+    }
+    
+    .payment-details {
+        border-top: 1px dashed #e0e0e0;
+        padding-top: 12px;
+        line-height: 1.5;
+        animation: slideDown 0.3s ease-out;
+    }
+    
+    .form-check-input:checked {
+        background-color: #ff5722 !important;
+        border-color: #ff5722 !important;
+    }
+    
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .btn-orange-gradient {
+        background: linear-gradient(135deg, #ff8a65 0%, #ff5722 100%) !important;
+        border: none !important;
+        color: white !important;
+        transition: all 0.3s ease;
+        border-radius: 30px !important;
+        box-shadow: 0 4px 15px rgba(255, 87, 34, 0.2) !important;
+    }
+
+    .btn-orange-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 87, 34, 0.35) !important;
+        background: linear-gradient(135deg, #ff7043 0%, #f4511e 100%) !important;
+    }
+    
+    .btn-orange-gradient:active {
+        transform: translateY(0);
+    }
+
+    @@media (min-width: 768px) {
+        .border-end-md {
+            border-right: 1px solid #eef0f6;
+        }
+    }
+</style>
+
+<div class="container mt-5 mb-5" style="max-width: 1200px;">
+    <h2 class="mb-4 text-center text-uppercase fw-bold text-dark"><i class="fas fa-credit-card text-orange me-2"></i>THANH TOÁN ĐƠN HÀNG</h2>
+
+    <div class="row g-4">
+        <!-- LEFT: Customer info & Shipping Form -->
+        <div class="col-lg-7">
+            <!-- Customer info card -->
+            <div class="card shadow-sm border-0 mb-4 rounded-3" style="border: 1px solid #e2e8f0 !important;">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="card-title mb-0 fw-bold text-secondary" style="font-size: 1.1rem;"><i class="fas fa-user-circle text-orange me-2"></i>Thông tin tài khoản</h5>
+                </div>
+                <div class="card-body pt-0 pb-3">
+                    <div class="row g-3">
+                        <div class="col-md-6 py-1">
+                            <span class="text-muted d-block small mb-1" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Họ và tên</span>
+                            <span class="fw-bold text-dark animate-fade-in" style="font-size: 1.05rem;">@(currentUser?.FullName ?? "Chưa thiết lập")</span>
+                        </div>
+                        <div class="col-md-6 py-1">
+                            <span class="text-muted d-block small mb-1" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Email đăng ký</span>
+                            <span class="fw-bold text-dark text-truncate d-block" style="font-size: 1.05rem;" title="@(currentUser?.Email ?? "Chưa thiết lập")">@(currentUser?.Email ?? "Chưa thiết lập")</span>
+                        </div>
+                        <div class="col-md-6 py-1">
+                            <span class="text-muted d-block small mb-1" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Tên đăng nhập</span>
+                            <span class="fw-bold text-dark" style="font-size: 1.05rem;">@(currentUser?.Username ?? "Chưa thiết lập")</span>
+                        </div>
+                        <div class="col-md-6 py-1">
+                            <span class="text-muted d-block small mb-1" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Số điện thoại</span>
+                            <span class="fw-bold text-dark" style="font-size: 1.05rem;">@(currentUser?.PhoneNumber ?? "Chưa thiết lập")</span>
+                        </div>
+                        <div class="col-md-6 py-1">
+                            <span class="text-muted d-block small mb-1" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Ngày sinh</span>
+                            <span class="fw-bold text-dark" style="font-size: 1.05rem;">@(currentUser?.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Chưa thiết lập")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping form card -->
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="card-title mb-0 fw-bold text-secondary"><i class="fas fa-truck text-orange me-2"></i>Thông tin giao hàng</h5>
+                </div>
+                <div class="card-body pt-0">
+                    <!-- Dynamic Payment Selector Suggestions -->
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Chọn phương thức thanh toán</label>
+                        <div class="d-flex flex-column gap-3">
+                            <!-- COD -->
+                            <div class="payment-method-card active" id="methodCOD" onclick="selectPaymentMethod('COD')">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input type="radio" name="paymentOption" id="radioCOD" checked class="form-check-input border-2 cursor-pointer" style="width: 20px; height: 20px;" />
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fas fa-money-bill-wave text-orange fs-5"></i>
+                                            <h6 class="fw-bold mb-0">Thanh toán khi nhận hàng (COD)</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="payment-details mt-3 text-muted small ps-5" id="detailsCOD" style="display: block;">
+                                    <i class="fas fa-info-circle text-orange me-1"></i> Quý khách sẽ thanh toán bằng tiền mặt trực tiếp cho nhân viên giao hàng khi nhận được sách. Vui lòng kiểm tra kỹ sách trước khi nhận.
+                                </div>
+                            </div>
+                            
+                            <!-- MoMo -->
+                            <div class="payment-method-card" id="methodMomo" onclick="selectPaymentMethod('Momo')">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input type="radio" name="paymentOption" id="radioMomo" class="form-check-input border-2 cursor-pointer" style="width: 20px; height: 20px;" />
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fas fa-wallet text-orange fs-5"></i>
+                                            <h6 class="fw-bold mb-0">Thanh toán bằng ví MoMo</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="payment-details mt-3 text-muted small ps-5" id="detailsMomo" style="display: none;">
+                                    <i class="fas fa-info-circle text-orange me-1"></i> Hệ thống sẽ chuyển tiếp quý khách sang cổng thanh toán của MoMo để thực hiện quét mã QR. Sau khi thanh toán thành công, đơn hàng sẽ được tự động xử lý.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Checkout Form (handles COD) -->
+                    <form asp-action="PlaceOrder" method="post" id="checkoutForm">
+                        <input type="hidden" name="paymentMethod" id="paymentMethodInput" value="COD" />
+
+                        <div class="mb-4">
+                            <label class="form-label text-muted small fw-bold">Địa chỉ giao hàng nhận sách</label>
+                            <input type="text" name="address" class="form-control border-2" 
+                                   style="padding: 10px 14px; border-radius: 8px;"
+                                   value="@(currentUser?.Address ?? "")" 
+                                   placeholder="Ví dụ: 123 Nguyễn Huệ, Quận 1, TP.HCM" required />
+                        </div>
+
+                        <div class="d-flex justify-content-center mt-4">
+                            <button type="button" onclick="submitCheckoutForm()" id="submitBtn" class="btn btn-orange-gradient btn-lg px-5 py-3 fw-bold shadow-sm" style="border-radius: 30px; min-width: 250px;">
+                                <i class="fas fa-check-circle me-2"></i> XÁC NHẬN ĐẶT HÀNG
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- MoMo Form (hidden, submitted via JS when MoMo method is selected) -->
+                    <form method="POST" asp-action="CreatePaymentMomo" asp-controller="Payment" id="momoForm" class="d-none">
+                        <input type="hidden" name="Amount" value="@total" />
+                        <input type="hidden" name="OrderInfo" value="Thanh toán đơn hàng" />
+                        <input type="hidden" name="OrderId" value="@Guid.NewGuid().ToString()" />
+                        <input type="hidden" name="FullName" value="@(currentUser?.FullName ?? "HAIANSTORE")" />
+                    </form>
+                </div>
+            </div>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Phương thức thanh toán</label>
-            <select name="paymentMethod" class="form-select" required>
-                <option value="COD">Thanh toán khi nhận hàng</option>
-            </select>
-        </div>
+        <!-- RIGHT: Order Summary & Item List -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 rounded-3 mb-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="card-title mb-0 fw-bold text-secondary"><i class="fas fa-shopping-basket text-orange me-2"></i>Đơn hàng gồm (@Model.Sum(x => x.Quantity) sản phẩm)</h5>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="order-items-list overflow-auto" style="max-height: 320px; padding-right: 5px;">
+                        @foreach (var item in Model)
+                        {
+                            <div class="d-flex align-items-center gap-3 py-3 border-bottom">
+                                <div class="item-img-wrapper flex-shrink-0" style="width: 60px; height: 80px; border-radius: 6px; overflow: hidden; border: 1px solid #eef0f6;">
+                                    <img src="@item.Image" alt="@item.ProductName" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/images/no-image.png'" />
+                                </div>
+                                <div class="item-info flex-grow-1">
+                                    <h6 class="mb-1 text-dark fw-bold" title="@item.ProductName" style="font-size: 0.9rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">@item.ProductName</h6>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <span class="text-muted small">@item.Price.ToString("N0") ₫  x @item.Quantity</span>
+                                        <span class="fw-bold text-primary" style="font-size: 0.95rem;">@((item.Price * item.Quantity).ToString("N0")) ₫</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
 
-        <div class="mb-3">
-            <strong>Tổng tiền: @total.ToString("N0") đ</strong>
+                    <!-- Order pricing summary -->
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Tạm tính</span>
+                            <span class="fw-bold text-dark">@total.ToString("N0") ₫</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Phí vận chuyển</span>
+                            <span class="text-success fw-bold">Miễn phí</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Giảm giá</span>
+                            <span class="text-muted fw-bold">0 ₫</span>
+                        </div>
+                        <hr class="my-3" />
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 mb-0 fw-bold text-dark">Tổng cộng</span>
+                            <span class="h4 mb-0 fw-bold text-danger">@total.ToString("N0") ₫</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <button type="submit" class="btn btn-success w-100">
-            Xác nhận đặt hàng
-        </button>
-    </form>
-    <p>Total: @total</p>
-    <form method="POST" asp-action="CreatePaymentMomo" asp-controller="Payment">
-        <input type="hidden" name="Amount" value="@total" />
-        <input type="hidden" name="OrderInfo" value="Thanh toán đơn hàng" />
-        <input type="hidden" name="OrderId" value="@Guid.NewGuid().ToString()" />
-        <input type="hidden" name="FullName" value="HAIANSTORE" />
-    <button class="btn btn-danger"  type="submit">
-        Pay with MoMo
-    </button>
-</form>
+    </div>
 </div>
+
+<script>
+    let selectedMethod = 'COD';
+
+    function selectPaymentMethod(method) {
+        selectedMethod = method;
+        
+        // Remove active class from all cards
+        document.getElementById('methodCOD').classList.remove('active');
+        document.getElementById('methodMomo').classList.remove('active');
+        
+        // Add active class to selected card
+        document.getElementById('method' + method).classList.add('active');
+        
+        // Uncheck all radios
+        document.getElementById('radioCOD').checked = false;
+        document.getElementById('radioMomo').checked = false;
+        
+        // Check selected radio
+        document.getElementById('radio' + method).checked = true;
+        
+        // Hide all details
+        document.getElementById('detailsCOD').style.display = 'none';
+        document.getElementById('detailsMomo').style.display = 'none';
+        
+        // Show selected details
+        document.getElementById('details' + method).style.display = 'block';
+        
+        // Update hidden field in COD form
+        document.getElementById('paymentMethodInput').value = method;
+        
+        // Update submit button text and style if needed
+        const submitBtn = document.getElementById('submitBtn');
+        if (method === 'COD') {
+            submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i> XÁC NHẬN ĐẶT HÀNG';
+        } else {
+            submitBtn.innerHTML = '<i class="fas fa-wallet me-2"></i> THANH TOÁN QUA VÍ MOMO';
+        }
+    }
+
+    function submitCheckoutForm() {
+        const addressInput = document.querySelector('input[name="address"]');
+        
+        if (!addressInput.value.trim()) {
+            addressInput.reportValidity();
+            return;
+        }
+
+        if (selectedMethod === 'COD') {
+            document.getElementById('checkoutForm').submit();
+        } else {
+            document.getElementById('momoForm').submit();
+        }
+    }
+</script>

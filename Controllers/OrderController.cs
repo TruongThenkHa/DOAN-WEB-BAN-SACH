@@ -27,12 +27,7 @@ public class OrderController : Controller
         return View(order);
     }
     public IActionResult History()
-{
-    var orders = _context.Orders
-        .Include(o => o.OrderDetails)
-        .ThenInclude(od => od.Book)
-        .ToList();
-
-    return View(orders);
-}
+    {
+        return RedirectToAction("Profile", "Account", new { tab = "orders" });
+    }
 }
