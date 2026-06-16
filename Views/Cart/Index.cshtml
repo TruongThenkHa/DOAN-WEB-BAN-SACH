@@ -96,7 +96,7 @@
                             <img src="@item.Image" />
                         </td>
                         <td>@item.ProductName</td>
-                        <td>@item.Price.ToString("N0") đ</td>
+                        <td>@((item.Price).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND</td>
                         <td>
                             <form asp-action="UpdateQuantity" method="post" class="d-flex justify-content-center">
                                 <input type="hidden" name="id" value="@item.ProductId" />
@@ -105,7 +105,7 @@
                             </form>
                         </td>
                         <td>
-                            @( (item.Price * item.Quantity).ToString("N0") ) đ
+                            @(((item.Price * item.Quantity)).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND
                         </td>
                         <td>
                             <a asp-action="Remove" asp-route-id="@item.ProductId" 
@@ -119,7 +119,7 @@
         </table>
 
         <div class="total-section">
-            Tổng cộng: @total.ToString("N0") đ
+            Tổng cộng: @((total).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND
         </div>
 
         <div class="text-center">

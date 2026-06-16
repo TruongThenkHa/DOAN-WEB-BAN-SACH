@@ -124,7 +124,7 @@
                 </div>
 
                 <div class="pd-price-box">
-                    <span class="pd-price">@Model.Price.ToString("N0") <small>₫</small></span>
+                    <span class="pd-price">@((Model.Price).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND</span>
                 </div>
 
                 <!-- Quantity + Add to Cart -->
@@ -221,7 +221,7 @@
                                     <span class="related-category">@related.Category.Name</span>
                                 }
                                 <h4 class="related-title">@related.Title</h4>
-                                <span class="related-price">@related.Price.ToString("N0") ₫</span>
+                                <span class="related-price">@((related.Price).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND</span>
                             </div>
                         </a>
                     }

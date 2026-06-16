@@ -1,0 +1,82 @@
+/* Custom status badges in pastel theme */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.status-pending {
+    background-color: #fff3cd; /* Pastel Yellow */
+    color: #856404;
+}
+.status-confirmed {
+    background-color: #cce5ff; /* Pastel Blue */
+    color: #004085;
+}
+.status-shipping {
+    background-color: #e2e3e5; /* Pastel Grey */
+    color: #383d41;
+}
+.status-completed {
+    background-color: #d1e7dd; /* Pastel Green */
+    color: #0f5132;
+}
+.status-cancelled {
+    background-color: #f8d7da; /* Pastel Red */
+    color: #721c24;
+}
+
+/* Pastel action button styles */
+.btn-pastel {
+    border: none;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.btn-pastel:active {
+    transform: scale(0.95);
+}
+.btn-pastel-blue {
+    background-color: #e7f1ff;
+    color: #0d6efd;
+}
+.btn-pastel-blue:hover {
+    background-color: #cfe2ff;
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.15);
+}
+.btn-pastel-red {
+    background-color: #f8d7da;
+    color: #dc3545;
+}
+.btn-pastel-red:hover {
+    background-color: #f5c2c7;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.15);
+}
+.btn-pastel-purple {
+    background-color: #f3e8ff;
+    color: #8b5cf6;
+}
+.btn-pastel-purple:hover {
+    background-color: #e9d5ff;
+    box-shadow: 0 2px 4px rgba(139, 92, 246, 0.15);
+}
+.btn-pastel-green {
+    background-color: #d1e7dd;
+    color: #198754;
+}
+.btn-pastel-green:hover {
+    background-color: #badbcc;
+    box-shadow: 0 2px 4px rgba(25, 135, 84, 0.15);
+}

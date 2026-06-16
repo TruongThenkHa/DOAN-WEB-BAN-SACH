@@ -1,52 +1,399 @@
 @model List<Book_Store.Models.Order>
-
-<h2>Danh sách đơn hàng</h2>
-
-<form method="get" class="mb-3 d-flex gap-2" style="max-width: 450px;">
-    <input type="text" name="q" value="@ViewBag.CurrentQ" class="form-control" placeholder="Tìm theo mã đơn, khách hàng, số điện thoại..." />
-    <button type="submit" class="btn btn-primary">Tìm kiếm</button>
-    @if (!string.IsNullOrEmpty(ViewBag.CurrentQ))
+@functions {
+    string GetStatusClass(Book_Store.Models.OrderStatus status)
     {
-        <a href="/Admin/OrderList" class="btn btn-secondary">Reset</a>
-    }
-</form>
-
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Mã đơn</th>
-            <th>Khách hàng</th>
-            <th>Ngày đặt</th>
-            <th>Tổng tiền</th>
-            <th>Trạng thái</th>
-            <th>Cập nhật</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var order in Model)
+        return status switch
         {
-            <tr>
-                <td>@order.OrderID</td>
-                <td>@order.CustomerName</td>
-                <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
-                <td>@order.TotalAmount.ToString("N0") đ</td>
-                <td>@order.Status</td>
-                <td>
-                    <a asp-action="UpdateStatus"
-                       asp-route-id="@order.OrderID"
-                       asp-route-status="Processing"
-                       class="btn btn-warning btn-sm">
-                        Xử lý
-                    </a>
+            Book_Store.Models.OrderStatus.Pending => "status-pending",
+            Book_Store.Models.OrderStatus.Confirmed => "status-confirmed",
+            Book_Store.Models.OrderStatus.Shipping => "status-shipping",
+            Book_Store.Models.OrderStatus.Completed => "status-completed",
+            Book_Store.Models.OrderStatus.Cancelled => "status-cancelled",
+            _ => "status-default"
+        };
+    }
 
-                    <a asp-action="UpdateStatus"
-                       asp-route-id="@order.OrderID"
-                       asp-route-status="Completed"
-                       class="btn btn-success btn-sm">
-                        Hoàn thành
-                    </a>
-                </td>
-            </tr>
+    string GetStatusText(Book_Store.Models.OrderStatus status)
+    {
+        return status switch
+        {
+            Book_Store.Models.OrderStatus.Pending => "Chờ xử lý",
+            Book_Store.Models.OrderStatus.Confirmed => "Đã xác nhận",
+            Book_Store.Models.OrderStatus.Shipping => "Đang giao hàng",
+            Book_Store.Models.OrderStatus.Completed => "Hoàn thành",
+            Book_Store.Models.OrderStatus.Cancelled => "Đã hủy",
+            _ => status.ToString()
+        };
+    }
+}
+@{
+    Layout = "~/Views/Shared/_Admin_Layout.cshtml";
+    ViewData["Title"] = "Danh sách đơn hàng";
+    string q = ViewBag.Query;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-categories.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/order-list.css" asp-append-version="true" />
+}
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 class="page-title">DANH SÁCH ĐƠN HÀNG</h1>
+
+        <div class="toolbar">
+            <form method="get" class="search-box" action="/Admin/OrderList" style="position: relative;">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 21l-4.3-4.3m1.3-5.2a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <input name="q" id="adminOrdersSearchInput" value="@q" placeholder="Tìm kiếm mã đơn, khách hàng,..." autocomplete="off" style="min-width: 320px;" />
+                <select name="status" class="input" onchange="this.form.submit()">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Pending" selected="@(ViewBag.Status == Book_Store.Models.OrderStatus.Pending ? "selected" : null)">Chờ xử lý</option>
+                    <option value="Confirmed" selected="@(ViewBag.Status == Book_Store.Models.OrderStatus.Confirmed ? "selected" : null)">Đã xác nhận</option>
+                    <option value="Shipping" selected="@(ViewBag.Status == Book_Store.Models.OrderStatus.Shipping ? "selected" : null)">Đang giao hàng</option>
+                    <option value="Completed" selected="@(ViewBag.Status == Book_Store.Models.OrderStatus.Completed ? "selected" : null)">Hoàn thành</option>
+                    <option value="Cancelled" selected="@(ViewBag.Status == Book_Store.Models.OrderStatus.Cancelled ? "selected" : null)">Đã hủy</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-custom-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="alert-custom-flex">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; color: #842029;">
+                    <circle cx="12" cy="12" r="10" fill="#842029"/>
+                    <path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>@TempData["Error"]</span>
+            </div>
+            <button type="button" class="alert-custom-close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-custom-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="alert-custom-flex">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; color: #0f5132;">
+                    <circle cx="12" cy="12" r="10" fill="#0f5132"/>
+                    <path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+            <button type="button" class="alert-custom-close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">MÃ ĐƠN</th>
+                    <th>KHÁCH HÀNG</th>
+                    <th>THÔNG TIN LIÊN HỆ</th>
+                    <th>NGÀY ĐẶT</th>
+                    <th>TỔNG TIỀN</th>
+                    <th>TRẠNG THÁI</th>
+                    <th style="width: 90px; text-align: center;">CHI TIẾT</th>
+                    <th class="cell-actions" style="width: 220px; text-align: left;">HÀNH VI</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model == null || Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="8" style="text-align:center; color:#667085; padding:28px;">
+                            Chưa có đơn hàng nào được tìm thấy.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var order in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong style="color: var(--primary);">#@order.OrderID</strong>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700; color: var(--text);">@order.CustomerName</div>
+                                <div style="font-size: 11px; color: var(--muted);">
+                                    @(order.UserID.HasValue ? $"Tài khoản ID: #{order.UserID}" : "Khách vãng lai")
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600;">@order.PhoneNumber</div>
+                                <div style="font-size: 12px; color: var(--muted); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@order.ShippingAddress">
+                                    @order.ShippingAddress
+                                </div>
+                            </td>
+                            <td>
+                                <div style="color: var(--text);">@order.OrderDate.ToString("dd/MM/yyyy")</div>
+                                <div style="font-size: 11px; color: var(--muted);">@order.OrderDate.ToString("HH:mm")</div>
+                            </td>
+                            <td>
+                                <strong style="color: var(--text); font-size: 15px;">@order.TotalAmount.ToString("N0") đ</strong>
+                                <div style="font-size: 11px; color: var(--muted); font-style: italic;">
+                                    @order.PaymentMethod
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-badge @GetStatusClass(order.Status)">
+                                    @GetStatusText(order.Status)
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                <button type="button" class="icon-btn icon-btn-view btn-open-detail"
+                                        data-id="@order.OrderID"
+                                        data-customer="@order.CustomerName"
+                                        data-phone="@order.PhoneNumber"
+                                        data-address="@order.ShippingAddress"
+                                        data-date="@order.OrderDate.ToString("dd/MM/yyyy HH:mm")"
+                                        data-amount="@order.TotalAmount.ToString("N0") đ"
+                                        data-payment="@order.PaymentMethod"
+                                        data-status="@GetStatusText(order.Status)"
+                                        data-status-class="@GetStatusClass(order.Status)"
+                                        data-items="@System.Text.Json.JsonSerializer.Serialize(order.OrderDetails.Select(od => new {
+                                            title = od.Book?.Title ?? "Sách đã bị xóa",
+                                            quantity = od.Quantity,
+                                            price = od.Price.ToString("N0") + " đ",
+                                            total = (od.Quantity * od.Price).ToString("N0") + " đ"
+                                        }))"
+                                        data-bs-toggle="modal" data-bs-target="#modalOrderDetail"
+                                        title="Xem chi tiết đơn hàng">
+                                    <svg class="icon" viewBox="0 0 24 24" fill="none">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </td>
+                            <td class="cell-actions" style="text-align: left;">
+                                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                    @if (order.Status == Book_Store.Models.OrderStatus.Pending)
+                                    {
+                                        <form method="post" action="/Admin/UpdateStatus" style="display:inline; margin:0;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@order.OrderID" />
+                                            <input type="hidden" name="status" value="Confirmed" />
+                                            <button type="submit" class="btn-pastel btn-pastel-blue">Xác nhận</button>
+                                        </form>
+                                        <form method="post" action="/Admin/UpdateStatus" style="display:inline; margin:0;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@order.OrderID" />
+                                            <input type="hidden" name="status" value="Cancelled" />
+                                            <button type="submit" class="btn-pastel btn-pastel-red">Hủy đơn</button>
+                                        </form>
+                                    }
+                                    else if (order.Status == Book_Store.Models.OrderStatus.Confirmed)
+                                    {
+                                        <form method="post" action="/Admin/UpdateStatus" style="display:inline; margin:0;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@order.OrderID" />
+                                            <input type="hidden" name="status" value="Shipping" />
+                                            <button type="submit" class="btn-pastel btn-pastel-purple">Giao hàng</button>
+                                        </form>
+                                        <form method="post" action="/Admin/UpdateStatus" style="display:inline; margin:0;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@order.OrderID" />
+                                            <input type="hidden" name="status" value="Cancelled" />
+                                            <button type="submit" class="btn-pastel btn-pastel-red">Hủy đơn</button>
+                                        </form>
+                                    }
+                                    else if (order.Status == Book_Store.Models.OrderStatus.Shipping)
+                                    {
+                                        <form method="post" action="/Admin/UpdateStatus" style="display:inline; margin:0;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@order.OrderID" />
+                                            <input type="hidden" name="status" value="Completed" />
+                                            <button type="submit" class="btn-pastel btn-pastel-green">Hoàn thành</button>
+                                        </form>
+                                        <form method="post" action="/Admin/UpdateStatus" style="display:inline; margin:0;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@order.OrderID" />
+                                            <input type="hidden" name="status" value="Cancelled" />
+                                            <button type="submit" class="btn-pastel btn-pastel-red">Hủy đơn</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: var(--muted); font-size: 12px; font-style: italic;">Không có hành động</span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Hiển thị trang @ViewBag.CurrentPage / @ViewBag.TotalPages (Tổng cộng @ViewBag.TotalItems đơn hàng)
+                </div>
+                <div class="pagination-buttons">
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <a class="pagination-btn" href="@Url.Action("OrderList", new { q = ViewBag.Query, status = ViewBag.Status, page = 1 })">&laquo;</a>
+                        <a class="pagination-btn" href="@Url.Action("OrderList", new { q = ViewBag.Query, status = ViewBag.Status, page = ViewBag.CurrentPage - 1 })">&lsaquo;</a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn disabled">&laquo;</span>
+                        <span class="pagination-btn disabled">&lsaquo;</span>
+                    }
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        if (i == ViewBag.CurrentPage)
+                        {
+                            <span class="pagination-btn active">@i</span>
+                        }
+                        else
+                        {
+                            <a class="pagination-btn" href="@Url.Action("OrderList", new { q = ViewBag.Query, status = ViewBag.Status, page = i })">@i</a>
+                        }
+                    }
+
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <a class="pagination-btn" href="@Url.Action("OrderList", new { q = ViewBag.Query, status = ViewBag.Status, page = ViewBag.CurrentPage + 1 })">&rsaquo;</a>
+                        <a class="pagination-btn" href="@Url.Action("OrderList", new { q = ViewBag.Query, status = ViewBag.Status, page = ViewBag.TotalPages })">&raquo;</a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn disabled">&rsaquo;</span>
+                        <span class="pagination-btn disabled">&raquo;</span>
+                    }
+                </div>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+</div>
+
+<!-- Modal Order Details -->
+<div class="modal fade" id="modalOrderDetail" tabindex="-1" aria-labelledby="modalOrderDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--line); padding: 18px 24px; background-color: #f8fafc;">
+                <h5 class="modal-title" id="modalOrderDetailLabel" style="font-weight: 700; color: var(--text); font-size: 18px;">CHI TIẾT ĐƠN HÀNG <span id="detailOrderId" style="color: var(--primary);"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 14px; color: var(--muted);"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <!-- General Order Information Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 14px; margin-bottom: 24px;">
+                    <div style="background-color: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line);">
+                        <span style="color: var(--muted); font-size: 11px; font-weight: 700; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Khách hàng</span>
+                        <strong id="detailCustomer" style="color: var(--text); font-size: 15px;"></strong>
+                        <div id="detailPhone" style="color: var(--text); margin-top: 2px; font-weight: 600;"></div>
+                    </div>
+                    <div style="background-color: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line);">
+                        <span style="color: var(--muted); font-size: 11px; font-weight: 700; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Thông tin đơn</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                            <div>
+                                <div id="detailDate" style="color: var(--text); font-weight: 600;"></div>
+                                <div id="detailPayment" style="font-size: 12px; color: var(--muted); margin-top: 2px;"></div>
+                            </div>
+                            <span id="detailStatus" class="status-badge"></span>
+                        </div>
+                    </div>
+                    <div style="grid-column: span 2; background-color: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line);">
+                        <span style="color: var(--muted); font-size: 11px; font-weight: 700; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Địa chỉ giao hàng</span>
+                        <strong id="detailAddress" style="color: var(--text); line-height: 1.4;"></strong>
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <div style="font-weight: 700; color: var(--text); font-size: 15
+                px; border-left: 3px solid var(--primary); padding-left: 8px; margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase;"> 
+                Sách đã đặt</div>
+                <div class="table-responsive" style="border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 16px;">
+                    <table class="table" style="margin: 0; font-size: 14px;">
+                        <thead style="background-color: #f8fafc;">
+                            <tr>
+                                <th>Tên sách</th>
+                                <th style="text-align: right; width: 120px;">Đơn giá</th>
+                                <th style="text-align: center; width: 80px;">SL</th>
+                                <th style="text-align: right; width: 140px;">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailItemsBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Total section -->
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; font-size: 16px; padding-top: 8px;">
+                    <span>Tổng thanh toán:</span>
+                    <strong id="detailAmount" style="font-size: 20px; color: var(--primary); font-weight: 800;"></strong>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--line); background-color: #f8fafc; padding: 16px 24px; display: flex; justify-content: flex-end;">
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal" style="height: 42px; border-radius: 6px; font-weight: 600;">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-open-detail');
+                if (!btn) return;
+
+                const id = btn.getAttribute('data-id');
+                const customer = btn.getAttribute('data-customer');
+                const phone = btn.getAttribute('data-phone');
+                const address = btn.getAttribute('data-address');
+                const date = btn.getAttribute('data-date');
+                const amount = btn.getAttribute('data-amount');
+                const payment = btn.getAttribute('data-payment');
+                const status = btn.getAttribute('data-status');
+                const statusClass = btn.getAttribute('data-status-class');
+                const itemsJson = btn.getAttribute('data-items') || '[]';
+
+                document.getElementById('detailOrderId').textContent = '#' + id;
+                document.getElementById('detailCustomer').textContent = customer;
+                document.getElementById('detailPhone').textContent = phone;
+                document.getElementById('detailAddress').textContent = address;
+                document.getElementById('detailDate').textContent = date;
+                document.getElementById('detailPayment').textContent = 'Thanh toán: ' + payment;
+                document.getElementById('detailAmount').textContent = amount;
+
+                const statusEl = document.getElementById('detailStatus');
+                statusEl.textContent = status;
+                statusEl.className = 'status-badge ' + statusClass;
+
+                // Populate items table
+                const tbody = document.getElementById('detailItemsBody');
+                tbody.innerHTML = '';
+
+                try {
+                    const items = JSON.parse(itemsJson);
+                    if (items.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#667085; padding:16px;">Không có thông tin sản phẩm.</td></tr>`;
+                    } else {
+                        items.forEach(item => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td><strong style="color: var(--text);">${item.title}</strong></td>
+                                <td style="text-align: right;">${item.price}</td>
+                                <td style="text-align: center; font-weight: 600;">${item.quantity}</td>
+                                <td style="text-align: right;"><strong style="color: var(--text);">${item.total}</strong></td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red; padding:16px;">Lỗi khi tải chi tiết sản phẩm.</td></tr>`;
+                }
+            });
+        });
+    </script>
+}

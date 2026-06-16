@@ -110,7 +110,7 @@
                                         <small class="text-muted d-block mb-1" style="font-size:.72rem; text-transform:uppercase; letter-spacing:.5px;">@book.Category.Name</small>
                                     }
                                     <h6 class="card-title mb-1" style="display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:.88rem; color:#1a1a2e;">@book.Title</h6>
-                                    <p class="text-danger fw-bold mb-2">@book.Price.ToString("N0")₫</p>
+                                    <p class="text-danger fw-bold mb-2">@((book.Price).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND</p>
                                 </div>
                             </div>
                         </a>

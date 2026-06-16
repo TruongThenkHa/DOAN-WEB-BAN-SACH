@@ -222,7 +222,7 @@
                                 }
                                 <h3 class="card-title" title="@book.Title">@book.Title</h3>
                                 <div class="card-price">
-                                    @book.Price.ToString("N0") <span>₫</span>
+                                    @((book.Price).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND
                                 </div>
                                 <div class="card-actions">
                                     @if (book.Stock == 0)

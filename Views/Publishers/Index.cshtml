@@ -13,7 +13,7 @@
 <div class="admin-page">
 
     <div class="page-header">
-        <h1 class="page-title">Nhà xuất bản</h1>
+        <h1 class="page-title">NHÀ XUẤT BẢN</h1>
 
         <div class="toolbar">
             <form method="get" class="search-box" action="/Publishers/Index" style="position: relative;">
@@ -24,16 +24,36 @@
                 <div id="adminPublishersSearchSuggestions" class="search-suggestions-dropdown"></div>
             </form>
 
-            <a class="btn btn-primary" asp-action="Create">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreatePublisher">
                 + Thêm nhà xuất bản
-            </a>
+            </button>
         </div>
     </div>
 
     @if (TempData["Error"] != null)
     {
-        <div style="margin-bottom:12px; color:#ef4444; font-weight:700;">
-            @TempData["Error"]
+        <div class="alert alert-custom-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="alert-custom-flex">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; color: #842029;">
+                    <circle cx="12" cy="12" r="10" fill="#842029"/>
+                    <path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>@TempData["Error"]</span>
+            </div>
+            <button type="button" class="alert-custom-close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-custom-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="alert-custom-flex">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; color: #0f5132;">
+                    <circle cx="12" cy="12" r="10" fill="#0f5132"/>
+                    <path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+            <button type="button" class="alert-custom-close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
@@ -92,15 +112,15 @@
 
                             <td class="cell-actions">
                                 <div class="actions">
-                                    <a class="icon-btn" asp-action="Edit" asp-route-id="@p.PublisherID" title="Sửa">
+                                    <button type="button" class="icon-btn icon-btn-edit btn-open-edit" data-id="@p.PublisherID" data-name="@p.Name" data-bs-toggle="modal" data-bs-target="#modalEditPublisher" title="Sửa">
                                         <svg class="icon" viewBox="0 0 24 24" fill="none">
                                             <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                                             <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
                                         </svg>
-                                    </a>
+                                    </button>
 
                                     <button type="button"
-                                            class="icon-btn btn-open-delete"
+                                            class="icon-btn icon-btn-hide btn-open-delete"
                                             data-id="@p.PublisherID"
                                             data-name="@p.Name"
                                             title="Xóa">
@@ -117,37 +137,132 @@
                 }
             </tbody>
         </table>
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Hiển thị trang @ViewBag.CurrentPage / @ViewBag.TotalPages (Tổng cộng @ViewBag.TotalItems nhà xuất bản)
+                </div>
+                <div class="pagination-buttons">
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, page = 1 })">&laquo;</a>
+                        <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, page = ViewBag.CurrentPage - 1 })">&lsaquo;</a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn disabled">&laquo;</span>
+                        <span class="pagination-btn disabled">&lsaquo;</span>
+                    }
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        if (i == ViewBag.CurrentPage)
+                        {
+                            <span class="pagination-btn active">@i</span>
+                        }
+                        else
+                        {
+                            <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, page = i })">@i</a>
+                        }
+                    }
+
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, page = ViewBag.CurrentPage + 1 })">&rsaquo;</a>
+                        <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, page = ViewBag.TotalPages })">&raquo;</a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn disabled">&rsaquo;</span>
+                        <span class="pagination-btn disabled">&raquo;</span>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </div>
 
-<div id="confirmBar" class="confirmbar" aria-hidden="true">
-    <div class="confirmbar__icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M12 9v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-            <path d="M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-            <path d="M10.3 3.6h3.4L22 20H2L10.3 3.6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-        </svg>
+<!-- Modal Delete Confirmation -->
+<div class="modal fade" id="modalDeleteConfirm" tabindex="-1" aria-labelledby="modalDeleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--line); padding: 18px 24px;">
+                <h5 class="modal-title" id="modalDeleteConfirmLabel" style="font-weight: 700; color: var(--text); font-size: 18px;">XÁC NHẬN XÓA</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 14px; color: var(--muted);"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <p id="deleteConfirmText" style="font-size: 15px; color: var(--text); margin: 0; font-weight: 500;">
+                    Bạn có chắc chắn muốn xóa nhà xuất bản này không?
+                </p>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--line); background-color: #f8fafc; padding: 16px 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal" style="height: 42px; border-radius: 6px; font-weight: 600;">Hủy</button>
+                
+                <form id="deleteConfirmFormSingle" method="post" action="/Publishers/Delete" style="display:none; margin:0;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteConfirmSingleId" />
+                    <button type="submit" class="btn btn-danger-solid" style="height: 42px; border-radius: 6px; font-weight: 600;">Xóa</button>
+                </form>
+
+                <form id="deleteConfirmFormBulk" method="post" action="/Publishers/BulkDelete" style="display:none; margin:0;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ids" id="deleteConfirmBulkIds" />
+                    <button type="submit" class="btn btn-danger-solid" style="height: 42px; border-radius: 6px; font-weight: 600;">Xóa đã chọn</button>
+                </form>
+            </div>
+        </div>
     </div>
+</div>
 
-    <div class="confirmbar__content">
-        <div class="confirmbar__title">Xác nhận xóa</div>
-        <div class="confirmbar__text" id="cbText"></div>
+<!-- Modal Create Publisher -->
+<div class="modal fade" id="modalCreatePublisher" tabindex="-1" aria-labelledby="modalCreatePublisherLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 540px;">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow);">
+            <form method="post" action="/Publishers/Create">
+                @Html.AntiForgeryToken()
+                <div class="modal-header" style="border-bottom: 1px solid var(--line); padding: 18px 24px;">
+                    <h5 class="modal-title" id="modalCreatePublisherLabel" style="font-weight: 700; color: var(--text); font-size: 18px;">THÊM NHÀ XUẤT BẢN</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 14px; color: var(--muted);"></button>
+                </div>
+                <div class="modal-body" style="padding: 24px;">
+                    <div class="field">
+                        <div class="label label-large" style="margin-bottom: 8px;">Tên nhà xuất bản</div>
+                        <input name="Name" class="input form-control" placeholder="VD: Nhà xuất bản Kim Đồng" required autocomplete="off" style="width: 100%; height: 48px; border-radius: 8px; border: 1px solid var(--line);" />
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--line); background-color: #f8fafc; padding: 16px 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-ghost" data-bs-dismiss="modal" style="height: 42px; border-radius: 6px; font-weight: 600;">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="height: 42px; border-radius: 6px; font-weight: 600;">Lưu</button>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
 
-    <div class="confirmbar__actions">
-        <button type="button" class="btn btn-ghost" id="cbCancel">Hủy</button>
-
-        <form id="cbFormSingle" method="post" action="/Publishers/Delete" style="display:none;">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="id" id="cbSingleId" />
-            <button type="submit" class="btn btn-danger">Xóa</button>
-        </form>
-
-        <form id="cbFormBulk" method="post" action="/Publishers/BulkDelete" style="display:none;">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="ids" id="cbBulkIds" />
-            <button type="submit" class="btn btn-danger">Xóa đã chọn</button>
-        </form>
+<!-- Modal Edit Publisher -->
+<div class="modal fade" id="modalEditPublisher" tabindex="-1" aria-labelledby="modalEditPublisherLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 540px;">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow);">
+            <form id="editPublisherForm" method="post" action="/Publishers/Edit">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="PublisherID" id="editPublisherId" />
+                <div class="modal-header" style="border-bottom: 1px solid var(--line); padding: 18px 24px;">
+                    <h5 class="modal-title" id="modalEditPublisherLabel" style="font-weight: 700; color: var(--text); font-size: 18px;">SỬA NHÀ XUẤT BẢN</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 14px; color: var(--muted);"></button>
+                </div>
+                <div class="modal-body" style="padding: 24px;">
+                    <div class="field">
+                        <div class="label label-large" style="margin-bottom: 8px;">Tên nhà xuất bản</div>
+                        <input name="Name" id="editPublisherName" class="input form-control" required autocomplete="off" style="width: 100%; height: 48px; border-radius: 8px; border: 1px solid var(--line);" />
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--line); background-color: #f8fafc; padding: 16px 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-ghost" data-bs-dismiss="modal" style="height: 42px; border-radius: 6px; font-weight: 600;">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="height: 42px; border-radius: 6px; font-weight: 600;">Lưu</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -192,29 +307,13 @@
         })();
 
         (function () {
-            const bar = document.getElementById('confirmBar');
-            const cbText = document.getElementById('cbText');
-            const cbCancel = document.getElementById('cbCancel');
+            const modalEl = document.getElementById('modalDeleteConfirm');
+            const textEl = document.getElementById('deleteConfirmText');
 
-            const formSingle = document.getElementById('cbFormSingle');
-            const formBulk = document.getElementById('cbFormBulk');
-            const singleId = document.getElementById('cbSingleId');
-            const bulkIds = document.getElementById('cbBulkIds');
-
-            function showBar() {
-                bar.classList.add('show');
-                bar.setAttribute('aria-hidden', 'false');
-            }
-
-            function hideBar() {
-                bar.classList.remove('show');
-                bar.setAttribute('aria-hidden', 'true');
-                formSingle.style.display = 'none';
-                formBulk.style.display = 'none';
-            }
-
-            cbCancel.addEventListener('click', hideBar);
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideBar(); });
+            const formSingle = document.getElementById('deleteConfirmFormSingle');
+            const formBulk = document.getElementById('deleteConfirmFormBulk');
+            const singleIdInput = document.getElementById('deleteConfirmSingleId');
+            const bulkIdsInput = document.getElementById('deleteConfirmBulkIds');
 
             document.addEventListener('click', function (e) {
                 const btn = e.target.closest('.btn-open-delete');
@@ -222,13 +321,21 @@
 
                 const id = btn.getAttribute('data-id');
                 const name = btn.getAttribute('data-name') || '';
-                cbText.textContent = `Xóa nhà xuất bản "${name}" (id#${id})? Thao tác không thể hoàn tác.`;
 
-                formBulk.style.display = 'none';
-                formSingle.style.display = 'inline-flex';
-                singleId.value = id;
+                if (textEl) {
+                    textEl.textContent = `Bạn có chắc chắn muốn xóa nhà xuất bản "${name}" (id#${id}) không?`;
+                }
 
-                showBar();
+                if (formBulk && formSingle && singleIdInput) {
+                    formBulk.style.display = 'none';
+                    formSingle.style.display = 'inline-flex';
+                    singleIdInput.value = id;
+                }
+
+                if (modalEl) {
+                    const deleteModal = new bootstrap.Modal(modalEl);
+                    deleteModal.show();
+                }
             });
 
             const openBulk = document.getElementById('openBulkDelete');
@@ -240,21 +347,122 @@
                     if (!ids) return;
 
                     const count = ids.split(',').filter(Boolean).length;
-                    cbText.textContent = `Xóa ${count} nhà xuất bản đã chọn? Thao tác không thể hoàn tác.`;
+                    if (textEl) {
+                        textEl.textContent = `Bạn có chắc chắn muốn xóa ${count} nhà xuất bản đã chọn không?`;
+                    }
 
-                    formSingle.style.display = 'none';
-                    formBulk.style.display = 'inline-flex';
-                    bulkIds.value = ids;
+                    if (formBulk && formSingle && bulkIdsInput) {
+                        formSingle.style.display = 'none';
+                        formBulk.style.display = 'inline-flex';
+                        bulkIdsInput.value = ids;
+                    }
 
-                    showBar();
+                    if (modalEl) {
+                        const deleteModal = new bootstrap.Modal(modalEl);
+                        deleteModal.show();
+                    }
+                });
+            }
+        })();
+
+        (function () {
+            const modalCreate = document.getElementById('modalCreatePublisher');
+            const modalEdit = document.getElementById('modalEditPublisher');
+            const editForm = document.getElementById('editPublisherForm');
+            const editId = document.getElementById('editPublisherId');
+            const editName = document.getElementById('editPublisherName');
+
+            if (modalCreate) {
+                modalCreate.addEventListener('show.bs.modal', function () {
+                    const input = modalCreate.querySelector('input[name="Name"]');
+                    if (input) { input.value = ''; setTimeout(() => input.focus(), 500); }
+                    const error = modalCreate.querySelector('.modal-error');
+                    if (error) error.remove();
                 });
             }
 
-            document.addEventListener('change', function (e) {
-                if (e.target && (e.target.classList.contains('row-check') || e.target.id === 'checkAll')) {
-                    hideBar();
+            if (modalEdit) {
+                modalEdit.addEventListener('show.bs.modal', function () {
+                    if (editName) { setTimeout(() => editName.focus(), 500); }
+                    const error = modalEdit.querySelector('.modal-error');
+                    if (error) error.remove();
+                });
+            }
+
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-open-edit');
+                if (!btn) return;
+
+                const id = btn.getAttribute('data-id');
+                const name = btn.getAttribute('data-name');
+
+                if (editId && editName && editForm) {
+                    editId.value = id;
+                    editName.value = name;
+                    editForm.action = `/Publishers/Edit/${id}`;
                 }
             });
+
+            // AJAX submit for Create Publisher
+            if (modalCreate) {
+                const form = modalCreate.querySelector('form');
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+                    const response = await fetch(form.action || '/Publishers/Create', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (response.redirected || (response.url.indexOf('/Publishers') !== -1 && response.url.indexOf('/Publishers/Create') === -1)) {
+                        window.location.reload();
+                    } else {
+                        const html = await response.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const errorEl = doc.querySelector('.text-danger, [data-valmsg-for="Name"]');
+                        const errorMsg = errorEl ? errorEl.textContent.trim() : "Tên nhà xuất bản không hợp lệ hoặc đã tồn tại.";
+                        
+                        let modalError = form.querySelector('.modal-error');
+                        if (!modalError) {
+                            modalError = document.createElement('div');
+                            modalError.className = 'modal-error text-danger mt-2';
+                            modalError.style.fontWeight = 'bold';
+                            form.querySelector('.field').appendChild(modalError);
+                        }
+                        modalError.textContent = errorMsg;
+                    }
+                });
+            }
+
+            // AJAX submit for Edit Publisher
+            if (modalEdit && editForm) {
+                editForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(editForm);
+                    const response = await fetch(editForm.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (response.redirected || (response.url.indexOf('/Publishers') !== -1 && response.url.indexOf('/Publishers/Edit') === -1)) {
+                        window.location.reload();
+                    } else {
+                        const html = await response.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const errorEl = doc.querySelector('.text-danger, [data-valmsg-for="Name"]');
+                        const errorMsg = errorEl ? errorEl.textContent.trim() : "Tên nhà xuất bản không hợp lệ hoặc đã tồn tại.";
+                        
+                        let modalError = editForm.querySelector('.modal-error');
+                        if (!modalError) {
+                            modalError = document.createElement('div');
+                            modalError.className = 'modal-error text-danger mt-2';
+                            modalError.style.fontWeight = 'bold';
+                            editForm.querySelector('.field').appendChild(modalError);
+                        }
+                        modalError.textContent = errorMsg;
+                    }
+                });
+            }
         })();
     </script>
 }

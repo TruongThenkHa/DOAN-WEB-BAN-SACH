@@ -1,18 +1,519 @@
+@model List<Book_Store.Models.User>
+@functions {
+    string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "U";
+        var parts = name.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "U";
+        if (parts.Length == 1) return parts[0][0].ToString().ToUpper();
+        return (parts[0][0].ToString() + parts[parts.Length - 1][0].ToString()).ToUpper();
+    }
+
+    string GetUserColorClass(string? email)
+    {
+        if (string.IsNullOrEmpty(email)) return "cat-default";
+        int hash = Math.Abs(email.GetHashCode());
+        string[] classes = { "cat-blue", "cat-purple", "cat-orange", "cat-green", "cat-pink", "cat-indigo" };
+        return classes[hash % classes.Length];
+    }
+}
 @{
     Layout = "~/Views/Shared/_Admin_Layout.cshtml";
-    ViewData["Title"] = "Admin Dashboard";
-    
+    ViewData["Title"] = "Quản lý người dùng";
+    string q = Context.Request.Query["q"];
 }
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"] - Admin Dashboard</title>
-    <link rel="stylesheet" href="~/Admin/css/admin-style.css">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-</head> 
-<body>
-    <h1>hello User Management</h1>
-</body>
-</html>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-categories.css" asp-append-version="true" />
+}
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 class="page-title">QUẢN LÝ NGƯỜI DÙNG</h1>
+
+        <div class="toolbar">
+            <form method="get" class="search-box" action="/Admin/UserManagement" style="position: relative;">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 21l-4.3-4.3m1.3-5.2a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <input name="q" id="adminUsersSearchInput" value="@q" placeholder="Tìm kiếm tài khoản, tên, email..." autocomplete="off" />
+                <select name="active" class="input" onchange="this.form.submit()">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="true" selected="@(ViewBag.Active == true ? "selected" : null)">Hoạt động</option>
+                    <option value="false" selected="@(ViewBag.Active == false ? "selected" : null)">Bị khóa</option>
+                </select>
+                <div id="adminUsersSearchSuggestions" class="search-suggestions-dropdown"></div>
+            </form>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-custom-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="alert-custom-flex">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; color: #842029;">
+                    <circle cx="12" cy="12" r="10" fill="#842029"/>
+                    <path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>@TempData["Error"]</span>
+            </div>
+            <button type="button" class="alert-custom-close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-custom-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="alert-custom-flex">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; color: #0f5132;">
+                    <circle cx="12" cy="12" r="10" fill="#0f5132"/>
+                    <path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+            <button type="button" class="alert-custom-close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div id="bulkbar" class="bulkbar">
+        <div class="bulk-left">
+            <strong id="selectedCount">0</strong> đã chọn
+            <button type="button" class="btn btn-ghost" id="clearSelect">Bỏ chọn</button>
+        </div>
+
+        <form id="bulkDeleteForm" method="post" action="/Admin/BulkDeleteUsers">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ids" id="bulkIds" />
+            <button type="button" class="btn btn-danger-solid" id="openBulkDelete">Xóa đã chọn</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="cell-check">
+                        <input type="checkbox" class="checkbox" id="checkAll" />
+                    </th>
+                    <th>NGƯỜI DÙNG</th>
+                    <th>THÔNG TIN LIÊN HỆ</th>
+                    <th>VAI TRÒ</th>
+                    <th>TRẠNG THÁI</th>
+                    <th class="cell-actions">HÀNH VI</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            @if (Model == null || Model.Count == 0)
+            {
+                <tr>
+                    <td colspan="6" style="text-align:center; color:#667085; padding:28px;">
+                        Chưa có người dùng nào.
+                    </td>
+                </tr>
+            }
+            else
+            {
+                foreach (var u in Model)
+                {
+                    <tr>
+                        <td class="cell-check">
+                            <input type="checkbox" class="checkbox row-check" value="@u.ID" />
+                        </td>
+
+                        <td>
+                            <div class="cat">
+                                <div class="badge @GetUserColorClass(u.Email)">
+                                    @GetInitials(u.FullName)
+                                </div>
+                                <div class="cat-name">
+                                    <strong>@u.FullName</strong>
+                                    <span>@u.Email</span>
+                                    <span style="font-size: 11px; color: #98a2b3;">Tên đăng nhập: @u.Username | id#@u.ID</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div style="line-height: 1.4;">
+                                @if (!string.IsNullOrEmpty(u.PhoneNumber))
+                                {
+                                    <div style="font-weight: 600; color: var(--text);">@u.PhoneNumber</div>
+                                }
+                                else
+                                {
+                                    <div style="color: var(--muted); font-style: italic;">Chưa có SĐT</div>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(u.Address))
+                                {
+                                    <div style="font-size: 12px; color: var(--muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@u.Address">@u.Address</div>
+                                }
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="category-badge @(u.Role == "Admin" ? "cat-purple" : "cat-blue")">
+                                @u.Role
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="stock-badge @(u.IsActive ? "stock-high" : "stock-low")">
+                                @(u.IsActive ? "Hoạt động" : "Bị khóa")
+                            </span>
+                        </td>
+
+                        <td class="cell-actions">
+                            <div class="actions">
+                                <!-- Eye Icon: View Details Popup -->
+                                <button type="button" class="icon-btn icon-btn-view btn-open-view" 
+                                        data-id="@u.ID" 
+                                        data-fullname="@u.FullName" 
+                                        data-email="@u.Email" 
+                                        data-username="@u.Username" 
+                                        data-phone="@u.PhoneNumber" 
+                                        data-address="@u.Address" 
+                                        data-role="@u.Role" 
+                                        data-dob="@(u.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Chưa thiết lập")" 
+                                        data-created="@(u.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "")" 
+                                        data-status="@(u.IsActive ? "Hoạt động" : "Bị khóa")"
+                                        data-status-class="@(u.IsActive ? "stock-high" : "stock-low")"
+                                        data-initials="@GetInitials(u.FullName)"
+                                        data-avatar-class="@GetUserColorClass(u.Email)"
+                                        data-bs-toggle="modal" data-bs-target="#modalViewUser" title="Xem chi tiết">
+                                    <svg class="icon" viewBox="0 0 24 24" fill="none">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+
+                                <!-- Lock / Unlock status toggle -->
+                                <form method="post" action="/Admin/ToggleUserStatus" style="display:inline; margin:0;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@u.ID" />
+                                    <button type="submit" class="icon-btn icon-btn-toggle" title="@(u.IsActive ? "Khóa tài khoản" : "Mở khóa tài khoản")">
+                                        @if (u.IsActive)
+                                        {
+                                            <svg class="icon" viewBox="0 0 24 24" fill="none">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        }
+                                        else
+                                        {
+                                            <svg class="icon" viewBox="0 0 24 24" fill="none">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M7 11V7a5 5 0 0 1 9.9-1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        }
+                                    </button>
+                                </form>
+
+                                <!-- Delete button -->
+                                <button type="button"
+                                    class="icon-btn icon-btn-hide btn-open-delete"
+                                    data-id="@u.ID"
+                                    data-name="@(string.IsNullOrEmpty(u.FullName) ? u.Username : u.FullName)"
+                                    title="Xóa">
+                                    <svg class="icon" viewBox="0 0 24 24" fill="none">
+                                        <path d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M8 6V4h8v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M6 6l1 16h10l1-16" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Hiển thị trang @ViewBag.CurrentPage / @ViewBag.TotalPages (Tổng cộng @ViewBag.TotalItems người dùng)
+                </div>
+                <div class="pagination-buttons">
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <a class="pagination-btn" href="@Url.Action("UserManagement", new { q = ViewBag.Query, active = ViewBag.Active, page = 1 })">&laquo;</a>
+                        <a class="pagination-btn" href="@Url.Action("UserManagement", new { q = ViewBag.Query, active = ViewBag.Active, page = ViewBag.CurrentPage - 1 })">&lsaquo;</a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn disabled">&laquo;</span>
+                        <span class="pagination-btn disabled">&lsaquo;</span>
+                    }
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        if (i == ViewBag.CurrentPage)
+                        {
+                            <span class="pagination-btn active">@i</span>
+                        }
+                        else
+                        {
+                            <a class="pagination-btn" href="@Url.Action("UserManagement", new { q = ViewBag.Query, active = ViewBag.Active, page = i })">@i</a>
+                        }
+                    }
+
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <a class="pagination-btn" href="@Url.Action("UserManagement", new { q = ViewBag.Query, active = ViewBag.Active, page = ViewBag.CurrentPage + 1 })">&rsaquo;</a>
+                        <a class="pagination-btn" href="@Url.Action("UserManagement", new { q = ViewBag.Query, active = ViewBag.Active, page = ViewBag.TotalPages })">&raquo;</a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn disabled">&rsaquo;</span>
+                        <span class="pagination-btn disabled">&raquo;</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal Delete Confirmation -->
+<div class="modal fade" id="modalDeleteConfirm" tabindex="-1" aria-labelledby="modalDeleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--line); padding: 18px 24px;">
+                <h5 class="modal-title" id="modalDeleteConfirmLabel" style="font-weight: 700; color: var(--text); font-size: 18px;">XÁC NHẬN XÓA NGƯỜI DÙNG</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 14px; color: var(--muted);"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <p id="deleteConfirmText" style="font-size: 15px; color: var(--text); margin: 0; font-weight: 500;">
+                    Bạn có chắc chắn muốn xóa tài khoản này không?
+                </p>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--line); background-color: #f8fafc; padding: 16px 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal" style="height: 42px; border-radius: 6px; font-weight: 600;">Hủy</button>
+                
+                <form id="deleteConfirmFormSingle" method="post" action="/Admin/DeleteUser" style="display:none; margin:0;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteConfirmSingleId" />
+                    <button type="submit" class="btn btn-danger-solid" style="height: 42px; border-radius: 6px; font-weight: 600;">Xóa</button>
+                </form>
+
+                <form id="deleteConfirmFormBulk" method="post" action="/Admin/BulkDeleteUsers" style="display:none; margin:0;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ids" id="deleteConfirmBulkIds" />
+                    <button type="submit" class="btn btn-danger-solid" style="height: 42px; border-radius: 6px; font-weight: 600;">Xóa đã chọn</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal View User Details -->
+<div class="modal fade" id="modalViewUser" tabindex="-1" aria-labelledby="modalViewUserLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--line); padding: 18px 24px; background-color: #f8fafc;">
+                <h5 class="modal-title" id="modalViewUserLabel" style="font-weight: 700; color: var(--text); font-size: 18px;">CHI TIẾT TÀI KHOẢN</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 14px; color: var(--muted);"></button>
+            </div>
+            <div class="modal-body" style="padding: 28px;">
+                <!-- Center Avatar and Core Info Profile Header -->
+                <div style="text-align: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--line);">
+                    <div id="viewUserAvatar" style="width: 76px; height: 76px; border-radius: 50%; font-size: 28px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.08); color: #fff;">
+                        U
+                    </div>
+                    <h4 id="viewUserFullName" style="font-weight: 800; color: var(--text); margin: 0 0 4px 0; font-size: 20px;"></h4>
+                    <div id="viewUserEmail" style="color: var(--muted); font-size: 14px; margin-bottom: 12px;"></div>
+                    <div style="display: flex; justify-content: center; gap: 8px; align-items: center;">
+                        <span id="viewUserRole" class="category-badge"></span>
+                        <span id="viewUserStatus" class="stock-badge"></span>
+                    </div>
+                </div>
+
+                <!-- Structured Details Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 14px;">
+                    <div style="grid-column: span 2; font-weight: 700; color: var(--text); font-size: 13px; border-left: 3px solid var(--primary); padding-left: 8px; margin-top: 4px; letter-spacing: 0.5px; text-transform: uppercase;">
+                        Thông tin tài khoản
+                    </div>
+
+                    <div style="background-color: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line);">
+                        <span style="color: var(--muted); font-size: 11px; font-weight: 700; display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;">Tên đăng nhập</span>
+                        <strong id="viewUserUsername" style="color: var(--text);"></strong>
+                    </div>
+
+                    <div style="background-color: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line);">
+                        <span style="color: var(--muted); font-size: 11px; font-weight: 700; display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;">Ngày tham gia</span>
+                        <strong id="viewUserCreated" style="color: var(--text);"></strong>
+                    </div>
+
+                    <div style="grid-column: span 2; font-weight: 700; color: var(--text); font-size: 13px; border-left: 3px solid var(--primary); padding-left: 8px; margin-top: 8px; letter-spacing: 0.5px; text-transform: uppercase;">
+                        Thông tin cá nhân
+                    </div>
+
+                    <div style="background-color: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line);">
+                        <span style="color: var(--muted); font-size: 11px; font-weight: 700; display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;">Số điện thoại</span>
+                        <strong id="viewUserPhone" style="color: var(--text);"></strong>
+                    </div>
+
+                    <div style="background-color: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line);">
+                        <span style="color: var(--muted); font-size: 11px; font-weight: 700; display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;">Ngày sinh</span>
+                        <strong id="viewUserDob" style="color: var(--text);"></strong>
+                    </div>
+
+                    <div style="grid-column: span 2; background-color: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line);">
+                        <span style="color: var(--muted); font-size: 11px; font-weight: 700; display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;">Địa chỉ giao hàng</span>
+                        <strong id="viewUserAddress" style="color: var(--text); line-height: 1.4;"></strong>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--line); background-color: #f8fafc; padding: 16px 24px; display: flex; justify-content: flex-end;">
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal" style="height: 42px; border-radius: 6px; font-weight: 600;">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const checkAll = document.getElementById('checkAll');
+            const checks = () => Array.from(document.querySelectorAll('.row-check'));
+            const bulkbar = document.getElementById('bulkbar');
+            const selectedCount = document.getElementById('selectedCount');
+            const bulkIds = document.getElementById('bulkIds');
+            const clearBtn = document.getElementById('clearSelect');
+
+            function refreshBulk() {
+                const selected = checks().filter(x => x.checked).map(x => x.value);
+                selectedCount.textContent = selected.length;
+                bulkIds.value = selected.join(',');
+                bulkbar.classList.toggle('show', selected.length > 0);
+                if (checkAll) checkAll.checked = selected.length > 0 && selected.length === checks().length;
+            }
+
+            if (checkAll) {
+                checkAll.addEventListener('change', function () {
+                    checks().forEach(x => x.checked = checkAll.checked);
+                    refreshBulk();
+                });
+            }
+
+            document.addEventListener('change', function (e) {
+                if (e.target && e.target.classList.contains('row-check')) refreshBulk();
+            });
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    checks().forEach(x => x.checked = false);
+                    if (checkAll) checkAll.checked = false;
+                    refreshBulk();
+                });
+            }
+
+            refreshBulk();
+        })();
+
+        (function () {
+            const modalEl = document.getElementById('modalDeleteConfirm');
+            const textEl = document.getElementById('deleteConfirmText');
+
+            const formSingle = document.getElementById('deleteConfirmFormSingle');
+            const formBulk = document.getElementById('deleteConfirmFormBulk');
+            const singleIdInput = document.getElementById('deleteConfirmSingleId');
+            const bulkIdsInput = document.getElementById('deleteConfirmBulkIds');
+
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-open-delete');
+                if (!btn) return;
+
+                const id = btn.getAttribute('data-id');
+                const name = btn.getAttribute('data-name') || '';
+
+                if (textEl) {
+                    textEl.textContent = `Bạn có chắc chắn muốn xóa tài khoản của người dùng "${name}" (id#${id}) không?`;
+                }
+
+                if (formBulk && formSingle && singleIdInput) {
+                    formBulk.style.display = 'none';
+                    formSingle.style.display = 'inline-flex';
+                    singleIdInput.value = id;
+                }
+
+                if (modalEl) {
+                    const deleteModal = new bootstrap.Modal(modalEl);
+                    deleteModal.show();
+                }
+            });
+
+            const openBulk = document.getElementById('openBulkDelete');
+            const bulkHidden = document.getElementById('bulkIds');
+
+            if (openBulk && bulkHidden) {
+                openBulk.addEventListener('click', function () {
+                    const ids = (bulkHidden.value || '').trim();
+                    if (!ids) return;
+
+                    const count = ids.split(',').filter(Boolean).length;
+                    if (textEl) {
+                        textEl.textContent = `Bạn có chắc chắn muốn xóa ${count} người dùng đã chọn không?`;
+                    }
+
+                    if (formBulk && formSingle && bulkIdsInput) {
+                        formSingle.style.display = 'none';
+                        formBulk.style.display = 'inline-flex';
+                        bulkIdsInput.value = ids;
+                    }
+
+                    if (modalEl) {
+                        const deleteModal = new bootstrap.Modal(modalEl);
+                        deleteModal.show();
+                    }
+                });
+            }
+        })();
+
+        (function () {
+            // View Details Trigger
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-open-view');
+                if (!btn) return;
+
+                const id = btn.getAttribute('data-id');
+                const fullname = btn.getAttribute('data-fullname') || 'Chưa cập nhật';
+                const email = btn.getAttribute('data-email');
+                const username = btn.getAttribute('data-username');
+                const phone = btn.getAttribute('data-phone') || 'Chưa cập nhật';
+                const address = btn.getAttribute('data-address') || 'Chưa cập nhật';
+                const role = btn.getAttribute('data-role') || 'Customer';
+                const dob = btn.getAttribute('data-dob');
+                const created = btn.getAttribute('data-created') || 'Không có thông tin';
+                const status = btn.getAttribute('data-status') || 'Hoạt động';
+                const statusClass = btn.getAttribute('data-status-class') || 'stock-high';
+                const initials = btn.getAttribute('data-initials') || 'U';
+                const avatarClass = btn.getAttribute('data-avatar-class') || 'cat-default';
+
+                const avatarEl = document.getElementById('viewUserAvatar');
+                avatarEl.textContent = initials;
+                
+                // Reset and set class to trigger custom styles
+                avatarEl.className = 'badge ' + avatarClass;
+
+                document.getElementById('viewUserUsername').textContent = username;
+                
+                const roleEl = document.getElementById('viewUserRole');
+                roleEl.textContent = role;
+                roleEl.className = 'category-badge ' + (role === 'Admin' ? 'cat-purple' : 'cat-blue');
+
+                document.getElementById('viewUserFullName').textContent = fullname;
+                document.getElementById('viewUserEmail').textContent = email;
+                document.getElementById('viewUserPhone').textContent = phone;
+                document.getElementById('viewUserDob').textContent = dob;
+                document.getElementById('viewUserAddress').textContent = address;
+                document.getElementById('viewUserCreated').textContent = created;
+
+                const statusEl = document.getElementById('viewUserStatus');
+                statusEl.textContent = status;
+                statusEl.className = 'stock-badge ' + statusClass;
+            });
+        })();
+    </script>
+}

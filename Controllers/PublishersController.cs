@@ -16,7 +16,7 @@ namespace Book_Store.Controllers
         }
 
         // GET: /Publishers
-        public async Task<IActionResult> Index(string? q)
+        public async Task<IActionResult> Index(string? q, int page = 1)
         {
             var query = _db.Publishers.AsNoTracking().AsQueryable();
 
@@ -26,9 +26,22 @@ namespace Book_Store.Controllers
                 query = query.Where(p => p.Name.Contains(q));
             }
 
+            int pageSize = 10;
+            int totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            page = Math.Max(1, page);
+
             var publishers = await query
                 .OrderBy(p => p.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Query = q;
 
             return View(publishers);
         }

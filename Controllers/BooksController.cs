@@ -24,7 +24,7 @@ namespace Book_Store.Controllers
         // =========================
         // INDEX (HIỂN THỊ)
         // =========================
-        public async Task<IActionResult> Index(string? q, int? categoryId, int? publisherId)
+        public async Task<IActionResult> Index(string? q, int? categoryId, int? publisherId, int page = 1)
         {
             var query = _db.Books
                 .AsNoTracking()
@@ -43,10 +43,25 @@ namespace Book_Store.Controllers
             if (categoryId.HasValue) query = query.Where(b => b.CategoryID == categoryId.Value);
             if (publisherId.HasValue) query = query.Where(b => b.PublisherID == publisherId.Value);
 
+            int pageSize = 10;
+            int totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            page = Math.Max(1, page);
+
             var books = await query
                 .OrderByDescending(b => b.CreatedAt)
                 .ThenBy(b => b.Title)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Query = q;
+            ViewBag.CategoryIDFilter = categoryId;
+            ViewBag.PublisherIDFilter = publisherId;
 
             await LoadLookups(categoryId, publisherId);
             return View(books);

@@ -207,8 +207,8 @@
                                 <div class="item-info flex-grow-1">
                                     <h6 class="mb-1 text-dark fw-bold" title="@item.ProductName" style="font-size: 0.9rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">@item.ProductName</h6>
                                     <div class="d-flex justify-content-between align-items-center mt-2">
-                                        <span class="text-muted small">@item.Price.ToString("N0") ₫  x @item.Quantity</span>
-                                        <span class="fw-bold text-primary" style="font-size: 0.95rem;">@((item.Price * item.Quantity).ToString("N0")) ₫</span>
+                                        <span class="text-muted small">@((item.Price).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND  x @item.Quantity</span>
+                                        <span class="fw-bold text-primary" style="font-size: 0.95rem;">@(((item.Price * item.Quantity)).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND</span>
                                     </div>
                                 </div>
                             </div>
@@ -219,7 +219,7 @@
                     <div class="mt-4 pt-3 border-top">
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Tạm tính</span>
-                            <span class="fw-bold text-dark">@total.ToString("N0") ₫</span>
+                            <span class="fw-bold text-dark">@((total).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Phí vận chuyển</span>
@@ -232,7 +232,7 @@
                         <hr class="my-3" />
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="h5 mb-0 fw-bold text-dark">Tổng cộng</span>
-                            <span class="h4 mb-0 fw-bold text-danger">@total.ToString("N0") ₫</span>
+                            <span class="h4 mb-0 fw-bold text-danger">@((total).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND</span>
                         </div>
                     </div>
                 </div>

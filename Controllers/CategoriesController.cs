@@ -16,7 +16,7 @@ namespace Book_Store.Controllers
         }
 
         // GET: /Categories
-        public async Task<IActionResult> Index(string? q)
+        public async Task<IActionResult> Index(string? q, int page = 1)
         {
             var query = _db.Categories.AsNoTracking().AsQueryable();
 
@@ -26,9 +26,22 @@ namespace Book_Store.Controllers
                 query = query.Where(c => c.Name.Contains(q));
             }
 
+            int pageSize = 10;
+            int totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            page = Math.Max(1, page);
+
             var categories = await query
                 .OrderBy(c => c.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Query = q;
 
             return View(categories);
         }
@@ -104,8 +117,8 @@ namespace Book_Store.Controllers
             var hasBooks = await _db.Books.AnyAsync(b => b.CategoryID == id);
             if (hasBooks)
             {
-                ModelState.AddModelError("", "Không thể xóa vì Category đang có Books.");
-                return View(category);
+                TempData["Error"] = "Không thể xóa vì danh mục đang có sách.";
+                return RedirectToAction(nameof(Index));
             }
 
             _db.Categories.Remove(category);

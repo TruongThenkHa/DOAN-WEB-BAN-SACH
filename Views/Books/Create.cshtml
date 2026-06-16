@@ -11,8 +11,8 @@
 
 <div class="admin-page">
     <div class="page-header">
-        <h1 class="page-title">Thêm sản phẩm</h1>
-        <a class="btn btn-ghost" asp-action="Index">Quay lại</a>
+        <h1 class="page-title">THÊM SẢN PHẨM</h1>
+        <a class="btn btn-back-danger" asp-action="Index">Quay lại</a>
     </div>
 
     <div class="card">
@@ -30,35 +30,19 @@
                             <span asp-validation-for="Title" class="text-danger"></span>
                         </div>
                         <div class="field">
-                            <div class="label" style="display:flex; justify-content:space-between; align-items:center;">
-                                <span>Tác giả</span>
-                                <button type="button" class="btn btn-ghost" id="btnAddAuthor">+ Thêm</button>
-                            </div>
+                            <div class="label">Tác giả</div>
 
-                            <select id="AuthorSelect" name="authorIds" multiple class="input"
-                                    asp-items="(MultiSelectList)ViewBag.Authors">
-                            </select>
-
-                            <div class="hint">Giữ Ctrl (hoặc Cmd) để chọn nhiều tác giả.</div>
-                        </div>
-
-                        <div id="modalAuthor"
-                             style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:9999;">
-                            <div
-                                style="max-width:520px; margin:10vh auto; background:#fff; border-radius:14px; padding:18px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <strong>Thêm tác giả</strong>
-                                    <button type="button" class="btn btn-ghost" id="closeAuthor">×</button>
-                                </div>
-
-                                <div style="margin-top:12px;">
-                                    <input class="input" id="authorName" placeholder="Tên tác giả" />
-                                </div>
-
-                                <div style="margin-top:14px; display:flex; gap:10px; justify-content:flex-end;">
-                                    <button type="button" class="btn btn-ghost" id="cancelAuthor">Hủy</button>
-                                    <button type="button" class="btn btn-primary" id="saveAuthor">Lưu</button>
-                                </div>
+                            <div class="author-list-container">
+                                @if (ViewBag.Authors != null)
+                                {
+                                    foreach (var author in (IEnumerable<SelectListItem>)ViewBag.Authors)
+                                    {
+                                        <label class="author-checkbox-item">
+                                            <input type="checkbox" name="authorIds" value="@author.Value" />
+                                            <span>@author.Text</span>
+                                        </label>
+                                    }
+                                }
                             </div>
                         </div>
                     </div>
@@ -73,10 +57,7 @@
                         </div>
 
                         <div class="field">
-                            <div class="label" style="display:flex; justify-content:space-between; align-items:center;">
-                                <span>Danh mục</span>
-                                <button type="button" class="btn btn-ghost" id="btnAddCategory">+ Thêm</button>
-                            </div>
+                            <div class="label">Danh mục</div>
 
                             <select id="CategorySelect" class="input" asp-for="CategoryID"
                                     asp-items="ViewBag.CategoryID">
@@ -84,61 +65,21 @@
                             </select>
                         </div>
 
-                        <div id="modalCategory"
-                             style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:9999;">
-                            <div
-                                style="max-width:520px; margin:10vh auto; background:#fff; border-radius:14px; padding:18px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <strong>Thêm danh mục</strong>
-                                    <button type="button" class="btn btn-ghost" id="closeCategory">×</button>
-                                </div>
-
-                                <div style="margin-top:12px;">
-                                    <input class="input" id="categoryName" placeholder="Tên danh mục" />
-                                </div>
-
-                                <div style="margin-top:14px; display:flex; gap:10px; justify-content:flex-end;">
-                                    <button type="button" class="btn btn-ghost" id="cancelCategory">Hủy</button>
-                                    <button type="button" class="btn btn-primary" id="saveCategory">Lưu</button>
-                                </div>
-                            </div>
-                        </div>
-
-
-
                         <div class="field">
-                            <div class="label" style="display:flex; justify-content:space-between; align-items:center;">
-                                <span>Nhà xuất bản</span>
-                                <button type="button" class="btn btn-ghost" id="btnAddPublisher">+ Thêm</button>
-                            </div>
+                            <div class="label">Nhà xuất bản</div>
 
                             <select class="input" asp-for="PublisherID" asp-items="ViewBag.PublisherID">
                                 <option value="">-- Chọn NXB --</option>
                             </select>
                         </div>
 
-                        <div id="modalPublisher"
-                             style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35);">
-                            <div
-                                style="max-width:520px; margin:10vh auto; background:#fff; border-radius:14px; padding:18px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <strong>Thêm nhà xuất bản</strong>
-                                    <button type="button" class="btn btn-ghost" id="closePublisher">×</button>
-                                </div>
-                                <div style="margin-top:12px;">
-                                    <input class="input" id="publisherName" placeholder="Tên nhà xuất bản" />
-                                </div>
-                                <div style="margin-top:14px; display:flex; gap:10px; justify-content:flex-end;">
-                                    <button type="button" class="btn btn-ghost" id="cancelPublisher">Hủy</button>
-                                    <button type="button" class="btn btn-primary" id="savePublisher">Lưu</button>
-                                </div>
-                            </div>
-                        </div>
-
                         <div style="display:flex; gap:16px; flex-wrap:wrap;">
                             <div class="field" style="flex:1; min-width:140px;">
                                 <div class="label">Giá</div>
-                                <input class="input" asp-for="Price" />
+                                <div class="input-group">
+                                    <input class="input" asp-for="Price" asp-format="{0:0}" />
+                                    <span class="input-group-suffix">VND</span>
+                                </div>
                             </div>
                             <div class="field" style="flex:1; min-width:140px;">
                                 <div class="label">Tồn kho</div>
@@ -157,13 +98,22 @@
                 <hr />
 
                 <div class="field">
-                    <div class="label">Ảnh từ thiết bị (có thể chọn nhiều)</div>
-                    <input class="input" type="file" name="uploadFiles" multiple accept="image/*" />
+                    <div class="label label-large">Ảnh từ thiết bị (có thể chọn nhiều)</div>
+                    <div class="upload-zone" id="uploadZone">
+                        <input type="file" name="uploadFiles" multiple accept="image/*" style="display: none;" />
+                        <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                        <div class="upload-title">Kéo thả ảnh vào đây hoặc click để chọn ảnh</div>
+                        <div class="upload-subtitle">Hỗ trợ các định dạng ảnh phổ biến (PNG, JPG, WEBP)</div>
+                    </div>
                     <div class="hint">Ảnh upload khi tạo sẽ được lưu vào /uploads/books/</div>
                 </div>
 
                 <div class="field">
-                    <div class="label">Ảnh từ URL (mỗi dòng 1 URL)</div>
+                    <div class="label label-large">Ảnh từ URL (mỗi dòng 1 URL)</div>
                     <textarea class="input" name="imageUrls" rows="4" placeholder="https://..."></textarea>
 
                     <div class="hint">Chọn cách xử lý URL:</div>
@@ -176,12 +126,12 @@
                 </div>
 
                 <div class="field">
-                    <div class="label" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="label label-large" style="display:flex; justify-content:space-between; align-items:center;">
                         <span>Ảnh có sẵn trong project</span>
                         <button type="button" class="btn btn-ghost" id="toggleStaticImages">Chọn ảnh từ project</button>
                     </div>
 
-                    <div id="staticImagesPanel" style="display:none; margin-top:10px;">
+                    <div id="staticImagesPanel" class="static-images-container" style="display:none;">
                         @if (staticImages.Count == 0)
                         {
                             <div class="hint">Không có ảnh trong /wwwroot/images/books/</div>
@@ -209,7 +159,7 @@
                         </div>
                     </div>
                     <div class="field">
-                        <div class="label">Xem trước ảnh (chọn ảnh bìa)</div>
+                        <div class="label label-large">Xem trước ảnh (chọn ảnh bìa)</div>
 
                         <div id="previewGrid"
                              style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:10px;">
@@ -376,6 +326,26 @@
             }
 
             // events
+            const uploadZone = document.getElementById('uploadZone');
+            if (uploadZone && fileInput) {
+                uploadZone.addEventListener('click', () => fileInput.click());
+                uploadZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadZone.classList.add('dragover');
+                });
+                uploadZone.addEventListener('dragleave', () => {
+                    uploadZone.classList.remove('dragover');
+                });
+                uploadZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadZone.classList.remove('dragover');
+                    if (e.dataTransfer.files.length > 0) {
+                        fileInput.files = e.dataTransfer.files;
+                        fileInput.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+
             if (fileInput) fileInput.addEventListener('change', rebuildPreview);
             if (urlTextarea) urlTextarea.addEventListener('input', rebuildPreview);
             urlModeRadios().forEach(r => r.addEventListener('change', rebuildPreview));
@@ -386,53 +356,7 @@
             rebuildPreview();
             })();
 
-            (function () {
-            const modal = document.getElementById('modalPublisher');
-            const btnOpen = document.getElementById('btnAddPublisher');
-            const btnClose = document.getElementById('closePublisher');
-            const btnCancel = document.getElementById('cancelPublisher');
-            const btnSave = document.getElementById('savePublisher');
-            const input = document.getElementById('publisherName');
-            const select = document.querySelector('select[name="PublisherID"]');
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-            function open() { modal.style.display = 'block'; input.value = ''; input.focus(); }
-            function close() { modal.style.display = 'none'; }
-
-            if (btnOpen) btnOpen.addEventListener('click', open);
-            if (btnClose) btnClose.addEventListener('click', close);
-            if (btnCancel) btnCancel.addEventListener('click', close);
-
-            if (btnSave) btnSave.addEventListener('click', async function () {
-            const name = (input.value || '').trim();
-            if (!name) return;
-
-            const body = new URLSearchParams();
-            body.append('name', name);
-
-            const res = await fetch('/Books/QuickCreatePublisher', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'RequestVerificationToken': token
-            },
-            body: body.toString()
-            });
-
-            if (!res.ok) return;
-
-            const data = await res.json(); // {id,text}
-            const opt = Array.from(select.options).find(o => o.value == String(data.id));
-            if (!opt) {
-            const o = document.createElement('option');
-            o.value = data.id;
-            o.textContent = data.text;
-            select.appendChild(o);
-            }
-            select.value = data.id;
-            close();
-            });
-            })();
             (function () {
             const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
             const token = tokenEl ? tokenEl.value : "";
@@ -446,97 +370,9 @@
             });
             }
 
-            // ===== Quick create Author =====
-            const mA = document.getElementById('modalAuthor');
-            const openA = document.getElementById('btnAddAuthor');
-            const closeA = document.getElementById('closeAuthor');
-            const cancelA = document.getElementById('cancelAuthor');
-            const saveA = document.getElementById('saveAuthor');
-            const authorName = document.getElementById('authorName');
-            const authorSelect = document.getElementById('AuthorSelect');
 
-            function openModal(el) { if (el) el.style.display = 'block'; }
-            function closeModal(el) { if (el) el.style.display = 'none'; }
 
-            if (openA) openA.addEventListener('click', () => { openModal(mA); if (authorName) { authorName.value = ''; authorName.focus(); } });
-            if (closeA) closeA.addEventListener('click', () => closeModal(mA));
-            if (cancelA) cancelA.addEventListener('click', () => closeModal(mA));
 
-            if (saveA) saveA.addEventListener('click', async () => {
-            const name = (authorName?.value || '').trim();
-            if (!name) return;
-
-            const body = new URLSearchParams(); body.append('name', name);
-
-            const res = await fetch('/Books/QuickCreateAuthor', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'RequestVerificationToken': token
-            },
-            body: body.toString()
-            });
-
-            if (!res.ok) return;
-
-            const data = await res.json(); // {id,text}
-
-            // add option + select it
-            let opt = Array.from(authorSelect.options).find(o => o.value === String(data.id));
-            if (!opt) {
-            opt = document.createElement('option');
-            opt.value = data.id;
-            opt.textContent = data.text;
-            authorSelect.appendChild(opt);
-            }
-            opt.selected = true;
-
-            closeModal(mA);
-            });
-
-            // ===== Quick create Category =====
-            const mC = document.getElementById('modalCategory');
-            const openC = document.getElementById('btnAddCategory');
-            const closeC = document.getElementById('closeCategory');
-            const cancelC = document.getElementById('cancelCategory');
-            const saveC = document.getElementById('saveCategory');
-            const categoryName = document.getElementById('categoryName');
-            const categorySelect = document.getElementById('CategorySelect');
-
-            if (openC) openC.addEventListener('click', () => { openModal(mC); if (categoryName) { categoryName.value = ''; categoryName.focus(); } });
-            if (closeC) closeC.addEventListener('click', () => closeModal(mC));
-            if (cancelC) cancelC.addEventListener('click', () => closeModal(mC));
-
-            if (saveC) saveC.addEventListener('click', async () => {
-            const name = (categoryName?.value || '').trim();
-            if (!name) return;
-
-            const body = new URLSearchParams(); body.append('name', name);
-
-            const res = await fetch('/Books/QuickCreateCategory', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'RequestVerificationToken': token
-            },
-            body: body.toString()
-            });
-
-            if (!res.ok) return;
-
-            const data = await res.json(); // {id,text}
-
-            let opt = Array.from(categorySelect.options).find(o => o.value === String(data.id));
-            if (!opt) {
-            opt = document.createElement('option');
-            opt.value = data.id;
-            opt.textContent = data.text;
-            categorySelect.appendChild(opt);
-            }
-            categorySelect.value = String(data.id);
-
-            closeModal(mC);
-            });
 
             })();
         </script>

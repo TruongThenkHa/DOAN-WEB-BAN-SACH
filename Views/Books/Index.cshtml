@@ -17,6 +17,14 @@
         var primary = imgs.FirstOrDefault(x => x.IsPrimary);
         return (primary?.ImagePath) ?? imgs.OrderBy(x => x.SortOrder).FirstOrDefault()?.ImagePath;
     }
+
+    string GetCategoryClass(string? name)
+    {
+        if (string.IsNullOrEmpty(name)) return "cat-default";
+        int hash = Math.Abs(name.GetHashCode());
+        string[] classes = { "cat-blue", "cat-purple", "cat-orange", "cat-green", "cat-pink", "cat-indigo" };
+        return classes[hash % classes.Length];
+    }
 }
 
 @section Styles {
@@ -36,12 +44,12 @@
                 <input name="q" id="adminBooksSearchInput" value="@q" placeholder="Tìm kiếm theo tên, mô tả, ID" autocomplete="off" />
                 <div id="adminBooksSearchSuggestions" class="search-suggestions-dropdown"></div>
 
-                <select name="categoryId" class="input" style="min-width:160px;"
+                <select name="categoryId" class="input"
                         asp-items="(SelectList)ViewBag.CategoryID">
                     <option value="">-- Tất cả danh mục --</option>
                 </select>
 
-                <select name="publisherId" class="input" style="min-width:160px;"
+                <select name="publisherId" class="input"
                         asp-items="(SelectList)ViewBag.PublisherID">
                     <option value="">-- Tất cả NXB --</option>
                 </select>
@@ -79,12 +87,12 @@
                     <th class="cell-check">
                         <input type="checkbox" class="checkbox" id="checkAll" />
                     </th>
-                    <th>Sách</th>
-                    <th>Danh mục</th>
+                    <th>SÁCH</th>
+                    <th>DANH MỤC</th>
                     <th>NXB</th>
-                    <th>Giá</th>
-                    <th>Tồn kho</th>
-                    <th class="cell-actions">Hành vi</th>
+                    <th>GIÁ</th>
+                    <th>TỒN KHO</th>
+                    <th>HÀNH VI</th>
                 </tr>
             </thead>
             <tbody>
@@ -126,8 +134,11 @@
                                 </div>
                             </td>
 
-                            <td style="color:#667085;">
-                                @b.Category?.Name
+                            <td>
+                                @if (b.Category != null)
+                                {
+                                    <span class="category-badge @GetCategoryClass(b.Category.Name)">@b.Category.Name</span>
+                                }
                             </td>
 
                             <td style="color:#667085;">
@@ -135,16 +146,23 @@
                             </td>
 
                             <td>
-                                @b.Price.ToString("N0") ₫
+                                @(b.Price.ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND
                             </td>
 
                             <td>
-                                @b.Stock
+                                @if (b.Stock > 10)
+                                {
+                                    <span class="stock-badge stock-high">@b.Stock</span>
+                                }
+                                else
+                                {
+                                    <span class="stock-badge stock-low">@b.Stock</span>
+                                }
                             </td>
 
                             <td class="cell-actions">
                                 <div class="actions">
-                                    <a class="icon-btn" asp-action="Edit" asp-route-id="@b.BookID" title="Sửa">
+                                    <a class="icon-btn icon-btn-edit" asp-action="Edit" asp-route-id="@b.BookID" title="Sửa">
                                         <svg class="icon" viewBox="0 0 24 24" fill="none">
                                             <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                                             <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z" stroke="currentColor"
@@ -155,7 +173,7 @@
                                     <form asp-action="Hide" method="post" style="display:inline;">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@b.BookID" />
-                                        <button type="submit" class="icon-btn" title="Ẩn sách">
+                                        <button type="submit" class="icon-btn icon-btn-hide" title="Ẩn sách">
                                             <!-- icon con mắt (eye-off) -->
                                             <svg class="icon" viewBox="0 0 24 24" fill="none">
                                                 <path d="M3 3l18 18" stroke="currentColor" stroke-width="2"
@@ -178,6 +196,49 @@
                 }
             </tbody>
         </table>
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Hiển thị trang @ViewBag.CurrentPage / @ViewBag.TotalPages (Tổng cộng @ViewBag.TotalItems sách)
+                </div>
+                <div class="pagination-buttons">
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, categoryId = ViewBag.CategoryIDFilter, publisherId = ViewBag.PublisherIDFilter, page = 1 })">&laquo;</a>
+                        <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, categoryId = ViewBag.CategoryIDFilter, publisherId = ViewBag.PublisherIDFilter, page = ViewBag.CurrentPage - 1 })">&lsaquo;</a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn disabled">&laquo;</span>
+                        <span class="pagination-btn disabled">&lsaquo;</span>
+                    }
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        if (i == ViewBag.CurrentPage)
+                        {
+                            <span class="pagination-btn active">@i</span>
+                        }
+                        else
+                        {
+                            <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, categoryId = ViewBag.CategoryIDFilter, publisherId = ViewBag.PublisherIDFilter, page = i })">@i</a>
+                        }
+                    }
+
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, categoryId = ViewBag.CategoryIDFilter, publisherId = ViewBag.PublisherIDFilter, page = ViewBag.CurrentPage + 1 })">&rsaquo;</a>
+                        <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, categoryId = ViewBag.CategoryIDFilter, publisherId = ViewBag.PublisherIDFilter, page = ViewBag.TotalPages })">&raquo;</a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn disabled">&rsaquo;</span>
+                        <span class="pagination-btn disabled">&raquo;</span>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </div>
 

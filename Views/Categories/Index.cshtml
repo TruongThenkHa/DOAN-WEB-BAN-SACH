@@ -1,4 +1,13 @@
 @model List<Book_Store.Models.Category>
+@functions {
+    string GetCategoryClass(string? name)
+    {
+        if (string.IsNullOrEmpty(name)) return "cat-default";
+        int hash = Math.Abs(name.GetHashCode());
+        string[] classes = { "cat-blue", "cat-purple", "cat-orange", "cat-green", "cat-pink", "cat-indigo" };
+        return classes[hash % classes.Length];
+    }
+}
 @{
     Layout = "~/Views/Shared/_Admin_Layout.cshtml";
     ViewData["Title"] = "Danh mục sản phẩm";
@@ -12,7 +21,7 @@
 <div class="admin-page">
 
     <div class="page-header">
-        <h1 class="page-title">Danh mục sản phẩm</h1>
+        <h1 class="page-title">DANH MỤC SẢN PHẨM</h1>
 
         <div class="toolbar">
             <form method="get" class="search-box" action="/Categories/Index" style="position: relative;">
@@ -23,11 +32,38 @@
                 <div id="adminCategoriesSearchSuggestions" class="search-suggestions-dropdown"></div>
             </form>
 
-            <a class="btn btn-primary" asp-action="Create">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreateCategory">
                 + Thêm danh mục
-            </a>
+            </button>
         </div>
     </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-custom-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="alert-custom-flex">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; color: #842029;">
+                    <circle cx="12" cy="12" r="10" fill="#842029"/>
+                    <path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>@TempData["Error"]</span>
+            </div>
+            <button type="button" class="alert-custom-close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-custom-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="alert-custom-flex">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; color: #0f5132;">
+                    <circle cx="12" cy="12" r="10" fill="#0f5132"/>
+                    <path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+            <button type="button" class="alert-custom-close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
     <div id="bulkbar" class="bulkbar">
         <div class="bulk-left">
@@ -83,23 +119,31 @@
                             </div>
                         </td>
 
-                        <td style="color:#667085;">@c.Slug</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(c.Slug))
+                            {
+                                <span class="category-badge @GetCategoryClass(c.Name)">@c.Slug</span>
+                            }
+                            else
+                            {
+                                <span class="category-badge cat-default">Chưa có</span>
+                            }
+                        </td>
 
                         <td class="cell-actions">
                             <div class="actions">
-                                <a class="icon-btn" asp-action="Edit" asp-route-id="@c.CategoryID" title="Sửa">
+                                <button type="button" class="icon-btn icon-btn-edit btn-open-edit" data-id="@c.CategoryID" data-name="@c.Name" data-slug="@c.Slug" data-bs-toggle="modal" data-bs-target="#modalEditCategory" title="Sửa">
                                     <svg class="icon" viewBox="0 0 24 24" fill="none">
                                         <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                         <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                                     </svg>
-                                </a>
+                                </button>
 
                                 <button type="button"
-                                    class="icon-btn btn-open-delete"
+                                    class="icon-btn icon-btn-hide btn-open-delete"
                                     data-id="@c.CategoryID"
                                     data-name="@c.Name"
                                     title="Xóa">
-                                    <!-- icon trash như bạn đang dùng -->
                                     <svg class="icon" viewBox="0 0 24 24" fill="none">
                                         <path d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                         <path d="M8 6V4h8v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -113,154 +157,345 @@
             }
             </tbody>
         </table>
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Hiển thị trang @ViewBag.CurrentPage / @ViewBag.TotalPages (Tổng cộng @ViewBag.TotalItems danh mục)
+                </div>
+                <div class="pagination-buttons">
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, page = 1 })">&laquo;</a>
+                        <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, page = ViewBag.CurrentPage - 1 })">&lsaquo;</a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn disabled">&laquo;</span>
+                        <span class="pagination-btn disabled">&lsaquo;</span>
+                    }
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        if (i == ViewBag.CurrentPage)
+                        {
+                            <span class="pagination-btn active">@i</span>
+                        }
+                        else
+                        {
+                            <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, page = i })">@i</a>
+                        }
+                    }
+
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, page = ViewBag.CurrentPage + 1 })">&rsaquo;</a>
+                        <a class="pagination-btn" href="@Url.Action("Index", new { q = ViewBag.Query, page = ViewBag.TotalPages })">&raquo;</a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn disabled">&rsaquo;</span>
+                        <span class="pagination-btn disabled">&raquo;</span>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </div>
-<div id="confirmBar" class="confirmbar" aria-hidden="true">
-    <div class="confirmbar__icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M12 9v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M10.3 3.6h3.4L22 20H2L10.3 3.6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-        </svg>
-    </div>
+<!-- Modal Delete Confirmation -->
+<div class="modal fade" id="modalDeleteConfirm" tabindex="-1" aria-labelledby="modalDeleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--line); padding: 18px 24px;">
+                <h5 class="modal-title" id="modalDeleteConfirmLabel" style="font-weight: 700; color: var(--text); font-size: 18px;">XÁC NHẬN XÓA</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 14px; color: var(--muted);"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <p id="deleteConfirmText" style="font-size: 15px; color: var(--text); margin: 0; font-weight: 500;">
+                    Bạn có chắc chắn muốn xóa danh mục này không?
+                </p>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--line); background-color: #f8fafc; padding: 16px 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal" style="height: 42px; border-radius: 6px; font-weight: 600;">Hủy</button>
+                
+                <form id="deleteConfirmFormSingle" method="post" action="/Categories/Delete" style="display:none; margin:0;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteConfirmSingleId" />
+                    <button type="submit" class="btn btn-danger-solid" style="height: 42px; border-radius: 6px; font-weight: 600;">Xóa</button>
+                </form>
 
-    <div class="confirmbar__content">
-        <div class="confirmbar__title" id="cbTitle">Xác nhận xóa</div>
-        <div class="confirmbar__text" id="cbText"></div>
-    </div>
-
-    <div class="confirmbar__actions">
-        <button type="button" class="btn btn-ghost" id="cbCancel">Hủy</button>
-
-        <form id="cbFormSingle" method="post" action="/Categories/Delete" style="display:none;">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="id" id="cbSingleId" />
-            <button type="submit" class="btn btn-danger">Xóa</button>
-        </form>
-
-        <form id="cbFormBulk" method="post" action="/Categories/BulkDelete" style="display:none;">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="ids" id="cbBulkIds" />
-            <button type="submit" class="btn btn-danger">Xóa đã chọn</button>
-        </form>
+                <form id="deleteConfirmFormBulk" method="post" action="/Categories/BulkDelete" style="display:none; margin:0;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ids" id="deleteConfirmBulkIds" />
+                    <button type="submit" class="btn btn-danger-solid" style="height: 42px; border-radius: 6px; font-weight: 600;">Xóa đã chọn</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
-    @section Scripts {
+<!-- Modal Create Category -->
+<div class="modal fade" id="modalCreateCategory" tabindex="-1" aria-labelledby="modalCreateCategoryLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 540px;">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow);">
+            <form method="post" action="/Categories/Create">
+                @Html.AntiForgeryToken()
+                <div class="modal-header" style="border-bottom: 1px solid var(--line); padding: 18px 24px;">
+                    <h5 class="modal-title" id="modalCreateCategoryLabel" style="font-weight: 700; color: var(--text); font-size: 18px;">THÊM DANH MỤC</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 14px; color: var(--muted);"></button>
+                </div>
+                <div class="modal-body" style="padding: 24px;">
+                    <div class="field" style="margin-bottom: 16px;">
+                        <div class="label label-large" style="margin-bottom: 8px;">Tên danh mục</div>
+                        <input name="Name" class="input form-control" placeholder="VD: Sách kinh doanh" required autocomplete="off" style="width: 100%; height: 48px; border-radius: 8px; border: 1px solid var(--line);" />
+                    </div>
+                    <div class="field">
+                        <div class="label label-large" style="margin-bottom: 8px;">Slug</div>
+                        <input name="Slug" class="input form-control" placeholder="VD: sach-kinh-doanh" autocomplete="off" style="width: 100%; height: 48px; border-radius: 8px; border: 1px solid var(--line);" />
+                        <div class="hint" style="font-size: 12px; color: var(--muted); margin-top: 4px;">Có thể để trống nếu chưa dùng SEO.</div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--line); background-color: #f8fafc; padding: 16px 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-ghost" data-bs-dismiss="modal" style="height: 42px; border-radius: 6px; font-weight: 600;">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="height: 42px; border-radius: 6px; font-weight: 600;">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Category -->
+<div class="modal fade" id="modalEditCategory" tabindex="-1" aria-labelledby="modalEditCategoryLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 540px;">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow);">
+            <form id="editCategoryForm" method="post" action="/Categories/Edit">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="CategoryID" id="editCategoryId" />
+                <div class="modal-header" style="border-bottom: 1px solid var(--line); padding: 18px 24px;">
+                    <h5 class="modal-title" id="modalEditCategoryLabel" style="font-weight: 700; color: var(--text); font-size: 18px;">SỬA DANH MỤC</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 14px; color: var(--muted);"></button>
+                </div>
+                <div class="modal-body" style="padding: 24px;">
+                    <div class="field" style="margin-bottom: 16px;">
+                        <div class="label label-large" style="margin-bottom: 8px;">Tên danh mục</div>
+                        <input name="Name" id="editCategoryName" class="input form-control" required autocomplete="off" style="width: 100%; height: 48px; border-radius: 8px; border: 1px solid var(--line);" />
+                    </div>
+                    <div class="field">
+                        <div class="label label-large" style="margin-bottom: 8px;">Slug</div>
+                        <input name="Slug" id="editCategorySlug" class="input form-control" autocomplete="off" style="width: 100%; height: 48px; border-radius: 8px; border: 1px solid var(--line);" />
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--line); background-color: #f8fafc; padding: 16px 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-ghost" data-bs-dismiss="modal" style="height: 42px; border-radius: 6px; font-weight: 600;">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="height: 42px; border-radius: 6px; font-weight: 600;">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
     <script>
-    (function () {
-    const checkAll = document.getElementById('checkAll');
-    const checks = () => Array.from(document.querySelectorAll('.row-check'));
-    const bulkbar = document.getElementById('bulkbar');
-    const selectedCount = document.getElementById('selectedCount');
-    const bulkIds = document.getElementById('bulkIds');
-    const clearBtn = document.getElementById('clearSelect');
-
-    function refreshBulk() {
-        const selected = checks().filter(x => x.checked).map(x => x.value);
-        selectedCount.textContent = selected.length;
-        bulkIds.value = selected.join(',');
-        bulkbar.classList.toggle('show', selected.length > 0);
-        if (checkAll) checkAll.checked = selected.length > 0 && selected.length === checks().length;
-    }
-
-    if (checkAll) {
-        checkAll.addEventListener('change', function () {
-        checks().forEach(x => x.checked = checkAll.checked);
-        refreshBulk();
-        });
-    }
-
-    document.addEventListener('change', function (e) {
-        if (e.target && e.target.classList.contains('row-check')) refreshBulk();
-    });
-
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function () {
-        checks().forEach(x => x.checked = false);
-        if (checkAll) checkAll.checked = false;
-        refreshBulk();
-        });
-    }
-
-    refreshBulk();
-    })();
         (function () {
-    const bar = document.getElementById('confirmBar');
-    const cbText = document.getElementById('cbText');
-    const cbCancel = document.getElementById('cbCancel');
+            const checkAll = document.getElementById('checkAll');
+            const checks = () => Array.from(document.querySelectorAll('.row-check'));
+            const bulkbar = document.getElementById('bulkbar');
+            const selectedCount = document.getElementById('selectedCount');
+            const bulkIds = document.getElementById('bulkIds');
+            const clearBtn = document.getElementById('clearSelect');
 
-    const formSingle = document.getElementById('cbFormSingle');
-    const formBulk = document.getElementById('cbFormBulk');
-    const singleId = document.getElementById('cbSingleId');
-    const bulkIds = document.getElementById('cbBulkIds');
+            function refreshBulk() {
+                const selected = checks().filter(x => x.checked).map(x => x.value);
+                selectedCount.textContent = selected.length;
+                bulkIds.value = selected.join(',');
+                bulkbar.classList.toggle('show', selected.length > 0);
+                if (checkAll) checkAll.checked = selected.length > 0 && selected.length === checks().length;
+            }
 
-    function showBar() {
-        bar.classList.add('show');
-        bar.setAttribute('aria-hidden', 'false');
-    }
+            if (checkAll) {
+                checkAll.addEventListener('change', function () {
+                    checks().forEach(x => x.checked = checkAll.checked);
+                    refreshBulk();
+                });
+            }
 
-    function hideBar() {
-        bar.classList.remove('show');
-        bar.setAttribute('aria-hidden', 'true');
-        formSingle.style.display = 'none';
-        formBulk.style.display = 'none';
-    }
+            document.addEventListener('change', function (e) {
+                if (e.target && e.target.classList.contains('row-check')) refreshBulk();
+            });
 
-    cbCancel.addEventListener('click', hideBar);
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    checks().forEach(x => x.checked = false);
+                    if (checkAll) checkAll.checked = false;
+                    refreshBulk();
+                });
+            }
 
-    // Ẩn khi ấn ESC
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') hideBar();
-    });
+            refreshBulk();
+        })();
 
-    // Confirm xóa 1 mục
-    document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.btn-open-delete');
-        if (!btn) return;
+        (function () {
+            const modalEl = document.getElementById('modalDeleteConfirm');
+            const textEl = document.getElementById('deleteConfirmText');
 
-        const id = btn.getAttribute('data-id');
-        const name = btn.getAttribute('data-name') || '';
+            const formSingle = document.getElementById('deleteConfirmFormSingle');
+            const formBulk = document.getElementById('deleteConfirmFormBulk');
+            const singleIdInput = document.getElementById('deleteConfirmSingleId');
+            const bulkIdsInput = document.getElementById('deleteConfirmBulkIds');
 
-        cbText.textContent = `Xóa danh mục "${name}" (id#${id})? Thao tác không thể hoàn tác.`;
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-open-delete');
+                if (!btn) return;
 
-        formBulk.style.display = 'none';
-        formSingle.style.display = 'inline-flex';
-        singleId.value = id;
+                const id = btn.getAttribute('data-id');
+                const name = btn.getAttribute('data-name') || '';
 
-        showBar();
-    });
+                if (textEl) {
+                    textEl.textContent = `Bạn có chắc chắn muốn xóa danh mục "${name}" (id#${id}) không?`;
+                }
 
-    // Confirm xóa nhiều mục
-    const openBulk = document.getElementById('openBulkDelete');
-    const bulkHidden = document.getElementById('bulkIds');
+                if (formBulk && formSingle && singleIdInput) {
+                    formBulk.style.display = 'none';
+                    formSingle.style.display = 'inline-flex';
+                    singleIdInput.value = id;
+                }
 
-    if (openBulk && bulkHidden) {
-        openBulk.addEventListener('click', function () {
-        const ids = (bulkHidden.value || '').trim();
-        if (!ids) return;
+                if (modalEl) {
+                    const deleteModal = new bootstrap.Modal(modalEl);
+                    deleteModal.show();
+                }
+            });
 
-        const count = ids.split(',').filter(Boolean).length;
+            const openBulk = document.getElementById('openBulkDelete');
+            const bulkHidden = document.getElementById('bulkIds');
 
-        cbText.textContent = `Xóa ${count} danh mục đã chọn? Thao tác không thể hoàn tác.`;
+            if (openBulk && bulkHidden) {
+                openBulk.addEventListener('click', function () {
+                    const ids = (bulkHidden.value || '').trim();
+                    if (!ids) return;
 
-        formSingle.style.display = 'none';
-        formBulk.style.display = 'inline-flex';
-        bulkIds.value = ids;
+                    const count = ids.split(',').filter(Boolean).length;
+                    if (textEl) {
+                        textEl.textContent = `Bạn có chắc chắn muốn xóa ${count} danh mục đã chọn không?`;
+                    }
 
-        showBar();
-        });
-    }
+                    if (formBulk && formSingle && bulkIdsInput) {
+                        formSingle.style.display = 'none';
+                        formBulk.style.display = 'inline-flex';
+                        bulkIdsInput.value = ids;
+                    }
 
-    // Nếu người dùng thay đổi lựa chọn (tick/untick) thì ẩn thanh để tránh xóa nhầm
-    document.addEventListener('change', function (e) {
-        if (e.target && e.target.classList.contains('row-check')) {
-        hideBar();
-        }
-        if (e.target && e.target.id === 'checkAll') {
-        hideBar();
-        }
-    });
-    })();
+                    if (modalEl) {
+                        const deleteModal = new bootstrap.Modal(modalEl);
+                        deleteModal.show();
+                    }
+                });
+            }
+        })();
+
+        (function () {
+            const modalCreate = document.getElementById('modalCreateCategory');
+            const modalEdit = document.getElementById('modalEditCategory');
+            const editForm = document.getElementById('editCategoryForm');
+            const editId = document.getElementById('editCategoryId');
+            const editName = document.getElementById('editCategoryName');
+            const editSlug = document.getElementById('editCategorySlug');
+
+            if (modalCreate) {
+                modalCreate.addEventListener('show.bs.modal', function () {
+                    const inputName = modalCreate.querySelector('input[name="Name"]');
+                    const inputSlug = modalCreate.querySelector('input[name="Slug"]');
+                    if (inputName) { inputName.value = ''; setTimeout(() => inputName.focus(), 500); }
+                    if (inputSlug) { inputSlug.value = ''; }
+                    const error = modalCreate.querySelector('.modal-error');
+                    if (error) error.remove();
+                });
+            }
+
+            if (modalEdit) {
+                modalEdit.addEventListener('show.bs.modal', function () {
+                    if (editName) { setTimeout(() => editName.focus(), 500); }
+                    const error = modalEdit.querySelector('.modal-error');
+                    if (error) error.remove();
+                });
+            }
+
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-open-edit');
+                if (!btn) return;
+
+                const id = btn.getAttribute('data-id');
+                const name = btn.getAttribute('data-name');
+                const slug = btn.getAttribute('data-slug') || '';
+
+                if (editId && editName && editSlug && editForm) {
+                    editId.value = id;
+                    editName.value = name;
+                    editSlug.value = slug;
+                    editForm.action = `/Categories/Edit/${id}`;
+                }
+            });
+
+            // AJAX submit for Create Category
+            if (modalCreate) {
+                const form = modalCreate.querySelector('form');
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+                    const response = await fetch(form.action || '/Categories/Create', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (response.redirected || (response.url.indexOf('/Categories') !== -1 && response.url.indexOf('/Categories/Create') === -1)) {
+                        window.location.reload();
+                    } else {
+                        const html = await response.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const errorEl = doc.querySelector('.text-danger, [data-valmsg-for="Name"]');
+                        const errorMsg = errorEl ? errorEl.textContent.trim() : "Tên danh mục không hợp lệ hoặc đã tồn tại.";
+                        
+                        let modalError = form.querySelector('.modal-error');
+                        if (!modalError) {
+                            modalError = document.createElement('div');
+                            modalError.className = 'modal-error text-danger mt-2';
+                            modalError.style.fontWeight = 'bold';
+                            form.querySelector('.field').appendChild(modalError);
+                        }
+                        modalError.textContent = errorMsg;
+                    }
+                });
+            }
+
+            // AJAX submit for Edit Category
+            if (modalEdit && editForm) {
+                editForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(editForm);
+                    const response = await fetch(editForm.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (response.redirected || (response.url.indexOf('/Categories') !== -1 && response.url.indexOf('/Categories/Edit') === -1)) {
+                        window.location.reload();
+                    } else {
+                        const html = await response.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const errorEl = doc.querySelector('.text-danger, [data-valmsg-for="Name"]');
+                        const errorMsg = errorEl ? errorEl.textContent.trim() : "Tên danh mục không hợp lệ hoặc đã tồn tại.";
+                        
+                        let modalError = editForm.querySelector('.modal-error');
+                        if (!modalError) {
+                            modalError = document.createElement('div');
+                            modalError.className = 'modal-error text-danger mt-2';
+                            modalError.style.fontWeight = 'bold';
+                            editForm.querySelector('.field').appendChild(modalError);
+                        }
+                        modalError.textContent = errorMsg;
+                    }
+                });
+            }
+        })();
     </script>
-    }
+}

@@ -18,8 +18,15 @@
         // active menu theo URL hiện tại
         var path = (Context.Request.Path.Value ?? "").ToLowerInvariant();
 
-        bool IsActive(string startsWith) =>
-            path.StartsWith(startsWith.ToLowerInvariant());
+        bool IsActive(string startsWith)
+        {
+            var s = startsWith.ToLowerInvariant();
+            if (s == "/admin")
+            {
+                return path == "/admin" || path == "/admin/" || path == "/admin/index";
+            }
+            return path.StartsWith(s);
+        }
 
         string ActiveClass(string startsWith) =>
             IsActive(startsWith) ? "active" : "";
