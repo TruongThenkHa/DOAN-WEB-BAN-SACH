@@ -1,13 +1,13 @@
-
 using Book_Store.Models;
-using Microsoft.EntityFrameworkCore;
+using Book_Store.Models.Momo;
+using Book_Store.Services.Chat;
+using Book_Store.Services.Momo;
 using Book_Store.ViewModel.users;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Book_Store.Models.Momo;
-using Book_Store.Services.Momo;
-
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
 //Connect to MomoAPI
 builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoAPI"));
 builder.Services.AddScoped<IMomoService, MomoService>();
@@ -16,6 +16,7 @@ builder.Services.AddLogging(config =>
     config.ClearProviders();
     config.AddConsole();
 });
+
 // 1. Thêm các dịch vụ vào Container
 builder.Services.AddSession();
 builder.Services.AddControllersWithViews();
@@ -27,14 +28,16 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-
+builder.Services.AddScoped<IChatBotService, ChatBotService>();
 
 // 2. Kết nối Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
 // 3. Cấu hình Cookie Authentication
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+builder
+    .Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
@@ -74,24 +77,25 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     if (!db.Users.Any(u => u.Email == "admin@bookstore.local"))
     {
-        db.Users.Add(new User
-        {
-            Email = "admin@bookstore.local",
-            FullName = "System Administrator",
-            Username = "admin", 
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"), 
-            Role = "Admin",
-            Address = "System",
-            IsActive = true,
-            CreatedAt = DateTime.Now
-        });
+        db.Users.Add(
+            new User
+            {
+                Email = "admin@bookstore.local",
+                FullName = "System Administrator",
+                Username = "admin",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
+                Role = "Admin",
+                Address = "System",
+                IsActive = true,
+                CreatedAt = DateTime.Now,
+            }
+        );
         db.SaveChanges();
     }
 }
 
 // 6. Cấu hình Route
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
