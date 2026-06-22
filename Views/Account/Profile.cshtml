@@ -48,7 +48,7 @@
                         <i class="fas fa-user me-2"></i> Thông tin tài khoản
                     </a>
                     <a href="javascript:void(0)" onclick="switchTab('profile-orders', this)" class="profile-sidebar-item" id="tab-btn-orders">
-                        <i class="fas fa-shopping-bag me-2"></i> ĐƠN HÀNG CỦA TÔI
+                        <i class="fas fa-shopping-bag me-2"></i> Đơn hàng của tôi
                     </a>
                     <form asp-controller="Account" asp-action="Logout" method="post" onsubmit="return confirm('Bạn có chắc muốn đăng xuất?')">
                         <button type="submit" class="profile-sidebar-item border-0 w-100 text-start bg-transparent text-danger">
@@ -132,40 +132,78 @@
                                         <span class="text-muted small">Ngày đặt: </span>
                                         <span class="text-dark">@order.OrderDate.ToString("dd/MM/yyyy")</span>
                                     </div>
-                                    <div>
-                                        @{
-                                            string statusText = "";
-                                            string statusClass = "";
-                                            switch (order.Status.ToString())
-                                            {
-                                                case "Received":
-                                                    statusText = "Đã nhận đơn";
-                                                    statusClass = "bg-info text-white";
-                                                    break;
-                                                case "Processing":
-                                                    statusText = "Đang xử lý";
-                                                    statusClass = "bg-warning text-dark";
-                                                    break;
-                                                case "Completed":
-                                                    statusText = "Hoàn thành";
-                                                    statusClass = "bg-success text-white";
-                                                    break;
-                                                case "Cancelled":
-                                                    statusText = "Đã hủy";
-                                                    statusClass = "bg-danger text-white";
-                                                    break;
-                                                default:
-                                                    statusText = order.Status.ToString();
-                                                    statusClass = "bg-secondary text-white";
-                                                    break;
-                                            }
-                                        }
-                                        <span class="badge @statusClass rounded-pill px-3 py-2" style="font-size: 0.8rem; font-weight: 500;">
-                                            @statusText
-                                        </span>
-                                    </div>
                                 </div>
                                 <div class="card-body pt-0 pb-3">
+                                    @{
+                                        int activeStep = 0; // 1: Pending, 2: Confirmed, 3: Shipping, 4: Completed
+                                        double fillPercent = 0;
+                                        bool isCancelled = false;
+
+                                        switch (order.Status.ToString())
+                                        {
+                                            case "Received":
+                                            case "Pending":
+                                                activeStep = 1;
+                                                fillPercent = 0;
+                                                break;
+                                            case "Processing":
+                                            case "Confirmed":
+                                                activeStep = 2;
+                                                fillPercent = 33.33;
+                                                break;
+                                            case "Shipping":
+                                                activeStep = 3;
+                                                fillPercent = 66.66;
+                                                break;
+                                            case "Completed":
+                                                activeStep = 4;
+                                                fillPercent = 100;
+                                                break;
+                                            case "Cancelled":
+                                                isCancelled = true;
+                                                activeStep = 2; // stops at the cancelled step (treated as Step 2: Đã hủy)
+                                                fillPercent = 33.33; // fills up to 33.33%
+                                                break;
+                                        }
+                                    }
+                                    
+                                    <!-- Modern Progress Bar -->
+                                    <div class="modern-progress-wrapper">
+                                        <div class="modern-progress-bar">
+                                            <div class="modern-progress-fill @(isCancelled ? "cancelled" : "")" style="width: @(fillPercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;"></div>
+                                        </div>
+                                        <div class="modern-steps">
+                                            <!-- Step 1: Đã đặt -->
+                                            <div class="modern-step @(activeStep >= 1 ? (isCancelled ? "cancelled active" : "active") : "") @(activeStep == 1 ? "current" : "")" style="left: 0%;">
+                                                <div class="step-text">Đơn hàng đã đặt</div>
+                                                <div class="step-icon">
+                                                    <i class="fas fa-shopping-cart"></i>
+                                                </div>
+                                            </div>
+                                            <!-- Step 2: Xác nhận / Hủy -->
+                                            <div class="modern-step @(activeStep >= 2 ? (isCancelled ? "cancelled active" : "active") : "") @(activeStep == 2 ? "current" : "")" style="left: 33.33%;">
+                                                <div class="step-text">@(isCancelled ? "Đã hủy" : "Đã xác nhận")</div>
+                                                <div class="step-icon">
+                                                    <i class="fas @(isCancelled ? "fa-ban" : "fa-clipboard-check")"></i>
+                                                </div>
+                                            </div>
+                                            <!-- Step 3: Đang giao -->
+                                            <div class="modern-step @(activeStep >= 3 ? "active" : "") @(activeStep == 3 ? "current" : "")" style="left: 66.66%;">
+                                                <div class="step-text">Đang giao hàng</div>
+                                                <div class="step-icon">
+                                                    <i class="fas fa-truck"></i>
+                                                </div>
+                                            </div>
+                                            <!-- Step 4: Hoàn thành -->
+                                            <div class="modern-step @(activeStep >= 4 ? "active" : "") @(activeStep == 4 ? "current" : "")" style="left: 100%;">
+                                                <div class="step-text">Hoàn thành</div>
+                                                <div class="step-icon">
+                                                    <i class="fas fa-box-open"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="border-top border-bottom py-2 my-2" style="border-top: 1px dashed #e2e8f0 !important; border-bottom: 1px dashed #e2e8f0 !important;">
                                         <h6 class="text-muted small fw-bold mb-2">Sản phẩm đã mua:</h6>
                                         <ul class="list-unstyled mb-0">

@@ -55,3 +55,134 @@
     color: #ff5722;
     border-left: 4px solid #f7fafc;
 }
+
+/* Modern Minimal Order Progress Bar */
+.modern-progress-wrapper {
+    position: relative;
+    width: 100%;
+    padding: 30px 0 15px; /* space at top for text */
+    margin: 20px 0;
+}
+
+.modern-progress-bar {
+    position: absolute;
+    left: 12.5%; /* aligns perfectly with center of the 1st step */
+    right: 12.5%; /* aligns perfectly with center of the 4th step */
+    top: 73px; /* vertical alignment with the icon center */
+    height: 4px; /* thinner line */
+    background-color: #e9ecef;
+    border-radius: 10px;
+    z-index: 1;
+}
+
+.modern-progress-fill {
+    height: 100%;
+    background-color: #2dc253;
+    border-radius: 10px;
+    width: 0%;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+}
+
+.modern-progress-fill.cancelled {
+    background-color: #dc3545;
+}
+
+.modern-steps {
+    display: flex;
+    position: relative;
+    width: 100%;
+    z-index: 2;
+}
+
+.modern-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    left: auto !important; /* override inline style */
+    transform: none !important; /* override inline transform */
+    width: auto !important;
+}
+
+.step-icon {
+    width: 26px; /* small compact circle with icon */
+    height: 26px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 2px solid #ced4da;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #ced4da;
+    transition: all 0.3s ease;
+    transform: none !important; /* remove translateY positioning since flex handles it */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.modern-step.active .step-icon {
+    background-color: #2dc253;
+    border-color: #2dc253;
+    color: #ffffff;
+}
+
+/* Highlight the current step */
+.modern-step.current .step-icon {
+    box-shadow: 0 0 0 4px rgba(45, 194, 83, 0.2);
+}
+
+.modern-step.cancelled.active .step-icon {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #ffffff;
+}
+
+.modern-step.cancelled.current .step-icon {
+    box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.2);
+}
+
+.step-text {
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    margin-bottom: 15px; /* space between text and icon, placing text above */
+    transition: color 0.3s ease;
+}
+
+.modern-step.active .step-text {
+    color: #2dc253;
+    font-weight: 600;
+}
+
+.modern-step.cancelled.active .step-text {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .modern-progress-wrapper {
+        padding: 25px 0 10px;
+        margin: 15px 0;
+    }
+    
+    .modern-progress-bar {
+        top: 61px; /* adjusted for mobile font-size and spacing */
+    }
+
+    .step-icon {
+        width: 22px;
+        height: 22px;
+        font-size: 9px;
+        border-width: 2px;
+    }
+    
+    .step-text {
+        font-size: 10px;
+        margin-bottom: 12px;
+    }
+}
+

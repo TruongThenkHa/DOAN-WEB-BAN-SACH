@@ -80,7 +80,7 @@
                 </li>
 
                 <li class="menu-item logout-item">
-                    <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
+                    <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" onsubmit="return confirm('Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?')">
                         <button type="submit" class="logout-btn">
                             <i class="fas fa-power-off"></i> Đăng xuất
                         </button>
