@@ -71,7 +71,7 @@
     function renderWelcomeMessage() {
         appendMessage(
             "bot",
-            "Xin chào! Mình là trợ lý AI của Nhà Sách Hải An 📚 Mình có thể giúp bạn tìm sách, kiểm tra giá, hoặc trả lời câu hỏi về thanh toán. Bạn cần giúp gì?"
+            "Xin chào! Mình là trợ lý AI của Nhà Sách Duy An Mình có thể giúp bạn tìm sách, kiểm tra giá, hoặc trả lời câu hỏi về thanh toán. Bạn cần giúp gì?"
         );
     }
 
