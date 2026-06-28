@@ -21,7 +21,7 @@ namespace Book_Store.Services.Chat
         private const string ModelName = "qwen2.5:1.5b"; // change to 3b if you pulled that instead
 
         private const string SystemPrompt =
-            "You are a helpful shopping assistant for \"Nhà Sách Hải An\", a Vietnamese online bookstore. "
+            "You are a helpful shopping assistant for \"Nhà Sách Duy An\", a Vietnamese online bookstore. "
             + "Answer briefly and in a friendly tone (2-4 sentences max). "
             + "Only answer questions related to the bookstore: books, categories, prices, orders, payment methods, account help. "
             + "If asked something unrelated (coding, math homework, general trivia), politely say you can only help with bookstore questions. "
