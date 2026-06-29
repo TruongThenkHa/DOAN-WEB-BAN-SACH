@@ -2,9 +2,11 @@ using Book_Store.Models;
 using Book_Store.Models.Momo;
 using Book_Store.Services.Chat;
 using Book_Store.Services.Momo;
+using Book_Store.Services.Stripe;
 using Book_Store.ViewModel.users;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,7 @@ builder.Services.AddLogging(config =>
 builder.Services.AddSession();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<IStripeService, StripeService>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -52,6 +55,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 var app = builder.Build();
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 // 4. Cấu hình Pipeline xử lý HTTP (Thứ tự rất quan trọng)
 if (!app.Environment.IsDevelopment())
@@ -98,4 +102,3 @@ using (var scope = app.Services.CreateScope())
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-
