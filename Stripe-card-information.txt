@@ -1,0 +1,3 @@
+4242 4242 4242 4242 Always succeeds
+4000 0000 0000 0002 Always declines
+4000 0025 0000 3155 Requires 3D Secure auth
