@@ -146,7 +146,7 @@
                             <i class="fas fa-shopping-cart"></i> Thêm vào giỏ hàng
                         </button>
                         <button class="pd-btn-buy" onclick="buyNow(@Model.BookID, this)">
-                            <i class="fas fa-bolt"></i> Thanh toán ngay
+                            Thanh toán ngay
                         </button>
                     }
                     else
@@ -322,7 +322,7 @@
                 .then(data => {
                     if (data.success === false && data.redirectUrl) {
                         var customRedirectUrl = '/Cart/AddToCartAndRedirect?id=' + bookId + '&quantity=' + qty + '&returnUrl=' + encodeURIComponent('/Cart/Checkout');
-                        window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(customRedirectUrl);
+                        window.location.href = '/Login?returnUrl=' + encodeURIComponent(customRedirectUrl);
                         return;
                     }
 

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Book_Store.Models;
-using Book_Store.ViewModel.users;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -17,6 +16,7 @@ namespace Book_Store.Controllers
             _context = context;
         }
 
+        /*
         [HttpGet]
         public IActionResult Register()
         {
@@ -116,13 +116,14 @@ namespace Book_Store.Controllers
 
             return RedirectToAction("Index", "Home");
         }
+        */
 
         [HttpGet]
         public IActionResult Profile()
         {
             if (User.Identity == null || !User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("Login");
+                return RedirectToPage("/Login");
             }
 
             var userIdVal = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -209,7 +210,7 @@ namespace Book_Store.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Login", "Account");
+            return RedirectToPage("/Login");
         }
     }
 }

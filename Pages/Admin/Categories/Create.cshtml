@@ -1,0 +1,40 @@
+@page
+@model Book_Store.Pages.Admin.Categories.CreateModel
+@{
+    Layout = "~/Views/Shared/_Admin_Layout.cshtml";
+    ViewData["Title"] = "Thêm danh mục (Razor Pages)";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-categories.css" asp-append-version="true" />
+}
+
+<div class="admin-page" style="max-width: 600px; margin: 0 auto; padding-top: 20px;">
+    <div class="page-header" style="border-bottom: 1px solid var(--line); padding-bottom: 15px; margin-bottom: 20px;">
+        <h1 class="page-title" style="font-size: 20px;">THÊM DANH MỤC MỚI (RAZOR PAGES)</h1>
+    </div>
+
+    <div class="card p-4 shadow-sm border-0">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Category.Name" class="form-label fw-bold">Tên danh mục:</label>
+                <input asp-for="Category.Name" class="form-control form-control-lg" placeholder="VD: Sách Khoa Học" required autocomplete="off" />
+                <span asp-validation-for="Category.Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Category.Slug" class="form-label fw-bold">Slug (Đường dẫn thân thiện):</label>
+                <input asp-for="Category.Slug" class="form-control" placeholder="VD: sach-khoa-hoc" autocomplete="off" />
+                <span asp-validation-for="Category.Slug" class="text-danger"></span>
+                <small class="text-muted d-block mt-1">Để trống hệ thống sẽ tự sinh dựa trên tên danh mục.</small>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <a asp-page="./Index" class="btn btn-ghost" style="border: 1px solid var(--line);">Quay lại</a>
+                <button type="submit" class="btn btn-primary px-4">Lưu danh mục</button>
+            </div>
+        </form>
+    </div>
+</div>

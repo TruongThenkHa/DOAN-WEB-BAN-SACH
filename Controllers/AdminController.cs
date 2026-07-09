@@ -115,25 +115,25 @@ namespace Book_Store.Controllers
                 statusValues.Add(count);
             }
 
-            ViewBag.TotalOrders = totalOrders;
-            ViewBag.TotalBooks = totalBooks;
-            ViewBag.TotalUsers = totalUsers;
-            ViewBag.TotalRevenue = totalRevenue;
-            ViewBag.RecentOrders = recentOrders;
-            ViewBag.LowStockBooks = lowStockBooks;
+            var viewModel = new AdminDashboardViewModel
+            {
+                TotalOrders = totalOrders,
+                TotalBooks = totalBooks,
+                TotalUsers = totalUsers,
+                TotalRevenue = totalRevenue,
+                RecentOrders = recentOrders,
+                LowStockBooks = lowStockBooks,
+                RevenueGrowth = revenueGrowth,
+                OrdersGrowth = ordersGrowth,
+                UsersGrowth = usersGrowth,
+                BooksGrowth = booksGrowth,
+                RevenueLabels = revenueData.Select(r => r.Label).ToList(),
+                RevenueValues = revenueData.Select(r => r.Amount).ToList(),
+                StatusLabels = statusLabels,
+                StatusValues = statusValues
+            };
 
-            ViewBag.RevenueGrowth = revenueGrowth;
-            ViewBag.OrdersGrowth = ordersGrowth;
-            ViewBag.UsersGrowth = usersGrowth;
-            ViewBag.BooksGrowth = booksGrowth;
-
-            ViewBag.RevenueLabels = revenueData.Select(r => r.Label).ToList();
-            ViewBag.RevenueValues = revenueData.Select(r => r.Amount).ToList();
-
-            ViewBag.StatusLabels = statusLabels;
-            ViewBag.StatusValues = statusValues;
-
-            return View();
+            return View(viewModel);
         }
 
         // ==============================
@@ -424,7 +424,7 @@ namespace Book_Store.Controllers
                     type = "category",
                     title = c.Name,
                     subtitle = "Quản lý danh mục",
-                    redirectUrl = $"/Categories/Index?q={Uri.EscapeDataString(c.Name)}"
+                    redirectUrl = $"/Admin/Categories?q={Uri.EscapeDataString(c.Name)}"
                 })
                 .ToListAsync();
             results.AddRange(categories);
@@ -440,7 +440,7 @@ namespace Book_Store.Controllers
                     type = "author",
                     title = a.Name,
                     subtitle = "Quản lý tác giả",
-                    redirectUrl = $"/Authors/Index?q={Uri.EscapeDataString(a.Name)}"
+                    redirectUrl = $"/Admin/Authors?q={Uri.EscapeDataString(a.Name)}"
                 })
                 .ToListAsync();
             results.AddRange(authors);
@@ -456,7 +456,7 @@ namespace Book_Store.Controllers
                     type = "publisher",
                     title = p.Name,
                     subtitle = "Quản lý nhà xuất bản",
-                    redirectUrl = $"/Publishers/Index?q={Uri.EscapeDataString(p.Name)}"
+                    redirectUrl = $"/Admin/Publishers?q={Uri.EscapeDataString(p.Name)}"
                 })
                 .ToListAsync();
             results.AddRange(publishers);

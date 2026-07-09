@@ -1,0 +1,77 @@
+.text-orange {
+    color: #ff5722 !important;
+}
+
+.payment-method-card {
+    border: 1.5px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #fff;
+}
+
+.payment-method-card:hover {
+    border-color: #ff5722;
+}
+
+.payment-method-card.active {
+    border-color: #ff5722;
+    background-color: rgba(255, 87, 34, 0.02);
+}
+
+.payment-details {
+    border-top: 1px dashed #e0e0e0;
+    padding-top: 12px;
+    line-height: 1.5;
+    animation: slideDown 0.3s ease-out;
+}
+
+.form-check-input:checked {
+    background-color: #ff5722 !important;
+    border-color: #ff5722 !important;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.btn-orange-gradient {
+    background: linear-gradient(135deg, #ff8a65 0%, #ff5722 100%) !important;
+    border: none !important;
+    color: white !important;
+    transition: all 0.3s ease;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 15px rgba(255, 87, 34, 0.2) !important;
+}
+
+.btn-orange-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 87, 34, 0.35) !important;
+    background: linear-gradient(135deg, #ff7043 0%, #f4511e 100%) !important;
+}
+
+.btn-orange-gradient:active {
+    transform: translateY(0);
+}
+
+@media (min-width: 768px) {
+    .border-end-md {
+        border-right: 1px solid #eef0f6;
+    }
+}
+
+/* Stripe card logo pill */
+.stripe-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #ff5722;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 20px;
+    letter-spacing: 0.4px;
+}

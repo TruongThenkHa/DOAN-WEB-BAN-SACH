@@ -21,7 +21,7 @@ namespace Book_Store.Services.Chat
         private const string ModelName = "qwen2.5:1.5b"; // change to 3b if you pulled that instead
 
         private const string SystemPrompt =
-            "You are a helpful shopping assistant for \"Nhà Sách Hải An\", a Vietnamese online bookstore. "
+            "You are a helpful shopping assistant for \"Nhà Sách Duy An\", a Vietnamese online bookstore. "
             + "Answer briefly and in a friendly tone (2-4 sentences max). "
             + "Only answer questions related to the bookstore: books, categories, prices, orders, payment methods, account help. "
             + "If asked something unrelated (coding, math homework, general trivia), politely say you can only help with bookstore questions. "
@@ -63,7 +63,7 @@ namespace Book_Store.Services.Chat
 
                 case ChatIntent.PaymentInfo:
                     contextData =
-                        "Payment methods available: Momo e-wallet, Cash on Delivery (COD).";
+                        "Payment methods available: Stripe credit card, Cash on Delivery (COD).";
                     break;
 
                 case ChatIntent.General:
@@ -91,7 +91,7 @@ namespace Book_Store.Services.Chat
             var m = message.ToLowerInvariant();
 
             string[] priceWords = { "giá", "price", "bao nhiêu tiền", "cost" };
-            string[] paymentWords = { "thanh toán", "payment", "momo", "trả tiền", "ship" };
+            string[] paymentWords = { "thanh toán", "payment", "trả tiền", "ship" };
             string[] categoryWords = { "thể loại", "category", "danh mục", "loại sách" };
             string[] searchWords =
             {

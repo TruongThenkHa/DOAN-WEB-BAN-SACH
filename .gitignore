@@ -1,3 +1,4 @@
 bin/
 obj/
 BookStore_SampleData.sql
+appsettings.json

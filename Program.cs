@@ -1,16 +1,12 @@
 using Book_Store.Models;
-using Book_Store.Models.Momo;
 using Book_Store.Services.Chat;
-using Book_Store.Services.Momo;
-using Book_Store.ViewModel.users;
+using Book_Store.Services.Stripe;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//Connect to MomoAPI
-builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoAPI"));
-builder.Services.AddScoped<IMomoService, MomoService>();
 builder.Services.AddLogging(config =>
 {
     config.ClearProviders();
@@ -20,7 +16,9 @@ builder.Services.AddLogging(config =>
 // 1. Thêm các dịch vụ vào Container
 builder.Services.AddSession();
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<IStripeService, StripeService>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -40,8 +38,8 @@ builder
     .Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/Login";
+        options.LoginPath = "/Login";
+        options.AccessDeniedPath = "/Login";
         options.LogoutPath = "/Account/Logout";
         options.Cookie.Name = "BookStore.Auth";
     });
@@ -52,6 +50,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 var app = builder.Build();
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 // 4. Cấu hình Pipeline xử lý HTTP (Thứ tự rất quan trọng)
 if (!app.Environment.IsDevelopment())
@@ -95,7 +94,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 // 6. Cấu hình Route
+app.MapRazorPages();
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-

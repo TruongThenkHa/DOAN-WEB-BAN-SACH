@@ -1,0 +1,163 @@
+@page
+@model Book_Store.Pages.Admin.Publishers.IndexModel
+@{
+    Layout = "~/Views/Shared/_Admin_Layout.cshtml";
+    ViewData["Title"] = "Quản lý nhà xuất bản (Razor Pages)";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-categories.css" asp-append-version="true" />
+}
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1 class="page-title">QUẢN LÝ NHÀ XUẤT BẢN (RAZOR PAGES)</h1>
+
+        <div class="toolbar">
+            <form method="get" class="search-box" style="position: relative; margin-right: 15px;">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" style="width: 18px; height: 18px; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #98a2b3;">
+                    <path d="M21 21l-4.3-4.3m1.3-5.2a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <input name="q" value="@Model.Q" placeholder="Tìm kiếm nhà xuất bản..." autocomplete="off" style="padding-left: 38px; height: 42px; border-radius: 6px; border: 1px solid var(--line); outline: none; width: 260px;" />
+            </form>
+
+            <a asp-page="./Create" class="btn btn-primary">
+                + Thêm nhà xuất bản
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-custom-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="alert-custom-flex" style="display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; color: #0f5132;">
+                    <circle cx="12" cy="12" r="10" fill="#0f5132"/>
+                    <path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+            <button type="button" class="alert-custom-close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-custom-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="alert-custom-flex" style="display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; color: #842029;">
+                    <circle cx="12" cy="12" r="10" fill="#842029"/>
+                    <path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>@TempData["ErrorMessage"]</span>
+            </div>
+            <button type="button" class="alert-custom-close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 100px;">ID</th>
+                    <th>Tên nhà xuất bản</th>
+                    <th class="cell-actions" style="width: 150px;">Hành vi</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            @if (Model.Publishers == null || Model.Publishers.Count == 0)
+            {
+                <tr>
+                    <td colspan="3" style="text-align:center; color:#667085; padding:28px;">
+                        Chưa có nhà xuất bản nào được tìm thấy.
+                    </td>
+                </tr>
+            }
+            else
+            {
+                foreach (var p in Model.Publishers)
+                {
+                    <tr>
+                        <td>
+                            <strong style="color: var(--muted);">#@p.PublisherID</strong>
+                        </td>
+
+                        <td>
+                            <div class="cat">
+                                <div class="badge" style="background-color: #6366f1; color: white;">P</div>
+                                <div class="cat-name">
+                                    <strong>@p.Name</strong>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="cell-actions">
+                            <div class="actions" style="display: flex; gap: 6px;">
+                                <a asp-page="./Edit" asp-route-id="@p.PublisherID" class="icon-btn icon-btn-edit" title="Sửa">
+                                    <svg class="icon" viewBox="0 0 24 24" fill="none">
+                                        <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+
+                                <a asp-page="./Delete" asp-route-id="@p.PublisherID" class="icon-btn icon-btn-hide text-danger" title="Xóa">
+                                    <svg class="icon" viewBox="0 0 24 24" fill="none">
+                                        <path d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M8 6V4h8v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M6 6l1 16h10l1-16" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="pagination-container p-3" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line);">
+                <div class="pagination-info" style="font-size: 13px; color: var(--muted);">
+                    Hiển thị trang @Model.PageNum / @Model.TotalPages (Tổng cộng @Model.TotalItems nhà xuất bản)
+                </div>
+                <div class="pagination-buttons" style="display: flex; gap: 4px;">
+                    @if (Model.PageNum > 1)
+                    {
+                        <a class="pagination-btn btn btn-sm btn-outline-secondary" href="?q=@Model.Q&pageNum=1">&laquo;</a>
+                        <a class="pagination-btn btn btn-sm btn-outline-secondary" href="?q=@Model.Q&pageNum=@(Model.PageNum - 1)">&lsaquo;</a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn btn btn-sm btn-outline-secondary disabled">&laquo;</span>
+                        <span class="pagination-btn btn btn-sm btn-outline-secondary disabled">&lsaquo;</span>
+                    }
+
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        if (i == Model.PageNum)
+                        {
+                            <span class="pagination-btn btn btn-sm btn-primary active text-white">@i</span>
+                        }
+                        else
+                        {
+                            <a class="pagination-btn btn btn-sm btn-outline-secondary" href="?q=@Model.Q&pageNum=@i">@i</a>
+                        }
+                    }
+
+                    @if (Model.PageNum < Model.TotalPages)
+                    {
+                        <a class="pagination-btn btn btn-sm btn-outline-secondary" href="?q=@Model.Q&pageNum=@(Model.PageNum + 1)">&rsaquo;</a>
+                        <a class="pagination-btn btn btn-sm btn-outline-secondary" href="?q=@Model.Q&pageNum=@Model.TotalPages">&raquo;</a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn btn btn-sm btn-outline-secondary disabled">&rsaquo;</span>
+                        <span class="pagination-btn btn btn-sm btn-outline-secondary disabled">&raquo;</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

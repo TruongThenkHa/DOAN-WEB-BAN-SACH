@@ -1,0 +1,33 @@
+@page
+@model Book_Store.Pages.Admin.Authors.CreateModel
+@{
+    Layout = "~/Views/Shared/_Admin_Layout.cshtml";
+    ViewData["Title"] = "Thêm tác giả (Razor Pages)";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-categories.css" asp-append-version="true" />
+}
+
+<div class="admin-page" style="max-width: 600px; margin: 0 auto; padding-top: 20px;">
+    <div class="page-header" style="border-bottom: 1px solid var(--line); padding-bottom: 15px; margin-bottom: 20px;">
+        <h1 class="page-title" style="font-size: 20px;">THÊM TÁC GIẢ MỚI (RAZOR PAGES)</h1>
+    </div>
+
+    <div class="card p-4 shadow-sm border-0">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Author.Name" class="form-label fw-bold">Tên tác giả:</label>
+                <input asp-for="Author.Name" class="form-control form-control-lg" placeholder="VD: Nguyễn Nhật Ánh" required autocomplete="off" />
+                <span asp-validation-for="Author.Name" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <a asp-page="./Index" class="btn btn-ghost" style="border: 1px solid var(--line);">Quay lại</a>
+                <button type="submit" class="btn btn-primary px-4">Lưu tác giả</button>
+            </div>
+        </form>
+    </div>
+</div>
