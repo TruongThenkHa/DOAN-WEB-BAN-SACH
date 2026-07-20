@@ -27,6 +27,26 @@ namespace Book_Store.Controllers
             return View(cart);
         }
 
+        [HttpPost]
+        public IActionResult UpdateQuantityApi([FromBody] UpdateQtyRequest req)
+        {
+            var cart = GetCart();
+            var item = cart.FirstOrDefault(p => p.ProductId == req.Id);
+            if (item != null && req.Quantity > 0)
+                item.Quantity = req.Quantity;
+            SaveCart(cart);
+            return Ok(new { success = true });
+        }
+
+        [HttpPost]
+        public IActionResult RemoveApi([FromBody] RemoveRequest req)
+        {
+            var cart = GetCart();
+            cart.RemoveAll(p => p.ProductId == req.Id);
+            SaveCart(cart);
+            return Ok(new { success = true });
+        }
+
         // ===========================
         // THÊM SẢN PHẨM (AJAX)
         // ===========================
@@ -92,9 +112,7 @@ namespace Book_Store.Controllers
             return Json(new { success = true, count = cart.Sum(x => x.Quantity) });
         }
 
-        // ===========================
         // THÊM SẢN PHẨM & CHUYỂN HƯỚNG (SAU KHI ĐĂNG NHẬP)
-        // ===========================
         [HttpGet]
         public IActionResult AddToCartAndRedirect(
             int id,
@@ -159,9 +177,7 @@ namespace Book_Store.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // ===========================
         // CẬP NHẬT SỐ LƯỢNG
-        // ===========================
         [HttpPost]
         public IActionResult UpdateQuantity(int id, int quantity)
         {
@@ -361,3 +377,7 @@ namespace Book_Store.Controllers
         }
     }
 }
+
+public record UpdateQtyRequest(int Id, int Quantity);
+
+public record RemoveRequest(int Id);

@@ -1,5 +1,6 @@
 @model IEnumerable<Book_Store.Models.Book>
 @using Book_Store.Models
+@addTagHelper *, Book_Store
 
 @{
     ViewData["Title"] = "Danh sách sản phẩm";
@@ -205,14 +206,7 @@
                                 <img src="@imgSrc" alt="@book.Title" class="card-image"
                                      asp-append-version="true"
                                      onerror="this.src='/images/no-image.png'" />
-                                @if (book.Stock == 0)
-                                {
-                                    <span class="badge-out">Hết hàng</span>
-                                }
-                                else if (book.Stock <= 5)
-                                {
-                                    <span class="badge-low">Sắp hết</span>
-                                }
+                                <stock-badge stock="@book.Stock" mode="badge" />
                             </div>
 
                             <div class="card-body">
@@ -222,7 +216,7 @@
                                 }
                                 <h3 class="card-title" title="@book.Title">@book.Title</h3>
                                 <div class="card-price">
-                                    @((book.Price).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND
+                                    <vnd-price value="@book.Price" />
                                 </div>
                                 <div class="card-actions">
                                     @if (book.Stock == 0)

@@ -1,0 +1,175 @@
+@using Book_Store.Models
+@using System.Globalization
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+@if (_items.Count == 0)
+{
+  <div class="text-center text-muted py-5">
+    <div style="font-size:2.5rem;">🥲</div>
+    <p class="mt-2 fw-bold">GIỎ HÀNG ĐANG TRỐNG</p>
+    <a href="/" class="btn btn-outline-danger mt-2">Tiếp tục mua sắm</a>
+  </div>
+}
+else
+{
+  <table class="table align-middle cart-table text-center">
+    <thead class="table-light">
+      <tr>
+        <th>Hình</th>
+        <th>Tên sách</th>
+        <th>Giá</th>
+        <th>Số lượng</th>
+        <th>Tạm tính</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @foreach (var item in _items)
+      {
+        <tr>
+          <td>
+            <img src="@item.Image" style="width:80px;height:100px;object-fit:cover;border-radius:8px;"
+                 onerror="this.src='/images/no-image.png'" />
+          </td>
+          <td class="fw-semibold">@item.ProductName</td>
+          <td>@FormatVnd(item.Price)</td>
+          <td>
+            @* Quantity spinner — no form submit, no page reload *@
+            <div class="d-flex align-items-center justify-content-center gap-2">
+              <button class="btn btn-sm btn-outline-secondary" style="width:30px;height:30px;padding:0;"
+                      @onclick="() => ChangeQty(item, item.Quantity - 1)" disabled="@(_busy || item.Quantity <= 1)">−</button>
+
+              <span class="fw-bold" style="min-width:24px;">@item.Quantity</span>
+
+              <button class="btn btn-sm btn-outline-secondary" style="width:30px;height:30px;padding:0;"
+                      @onclick="() => ChangeQty(item, item.Quantity + 1)" disabled="@_busy">+</button>
+            </div>
+          </td>
+          <td class="fw-bold text-danger">@FormatVnd(item.Price * item.Quantity)</td>
+          <td>
+            <button class="btn btn-sm btn-danger" @onclick="() => RemoveItem(item)" disabled="@_busy">
+              @if (_busy && _busyId == item.ProductId)
+              {
+                <span class="spinner-border spinner-border-sm"></span>
+              }
+              else
+              {
+                <span>Xoá</span>
+              }
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <div class="total-section">
+    Tổng cộng: <span class="text-danger">@FormatVnd(_total)</span>
+  </div>
+
+  @if (!string.IsNullOrEmpty(_errorMsg))
+  {
+    <div class="alert alert-warning mt-2">@_errorMsg</div>
+  }
+
+  <div class="text-center mt-4">
+    <a href="/Cart/Checkout" class="btn checkout-btn">
+      <i class="fas fa-bolt"></i> Thanh toán ngay
+    </a>
+  </div>
+}
+
+@code {
+  /// <summary>
+  /// Cart items passed in from the embedding Razor view via:
+  /// param-InitialItems="Model"
+  /// </summary>
+  [Parameter]
+  public List<CartItem> InitialItems { get; set; } = new();
+
+  private List<CartItem> _items = new();
+  private bool _busy = false;
+  private int _busyId = 0;
+  private string _errorMsg = string.Empty;
+
+  private decimal _total => _items.Sum(i => i.Price * i.Quantity);
+
+  protected override void OnInitialized()
+  {
+    // Deep copy so we own the list — Blazor diff won't fight the parent
+    _items = InitialItems
+        .Select(i => new CartItem
+        {
+          ProductId = i.ProductId,
+          ProductName = i.ProductName,
+          Price = i.Price,
+          Quantity = i.Quantity,
+          Image = i.Image
+        })
+        .ToList();
+  }
+
+  private async Task ChangeQty(CartItem item, int newQty)
+  {
+    if (newQty < 1 || _busy) return;
+
+    _busy = true;
+    _busyId = item.ProductId;
+    _errorMsg = string.Empty;
+
+    try
+    {
+      var result = await Http.PostAsJsonAsync(
+          "/Cart/UpdateQuantityApi",
+          new { id = item.ProductId, quantity = newQty });
+
+      if (result.IsSuccessStatusCode)
+        item.Quantity = newQty; // update local state → total recalculates
+      else
+        _errorMsg = "Không thể cập nhật số lượng, vui lòng thử lại.";
+    }
+    catch
+    {
+      _errorMsg = "Lỗi kết nối, vui lòng thử lại.";
+    }
+    finally
+    {
+      _busy = false;
+      _busyId = 0;
+    }
+  }
+
+  private async Task RemoveItem(CartItem item)
+  {
+    if (_busy) return;
+
+    _busy = true;
+    _busyId = item.ProductId;
+    _errorMsg = string.Empty;
+
+    try
+    {
+      var result = await Http.PostAsJsonAsync(
+          "/Cart/RemoveApi",
+          new { id = item.ProductId });
+
+      if (result.IsSuccessStatusCode)
+        _items.Remove(item); // row disappears instantly — no page reload
+      else
+        _errorMsg = "Không thể xoá sản phẩm, vui lòng thử lại.";
+    }
+    catch
+    {
+      _errorMsg = "Lỗi kết nối, vui lòng thử lại.";
+    }
+    finally
+    {
+      _busy = false;
+      _busyId = 0;
+    }
+  }
+
+  private static string FormatVnd(decimal value) =>
+      value.ToString("#,##0", new CultureInfo("vi-VN")) + " VND";
+}

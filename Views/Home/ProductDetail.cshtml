@@ -1,5 +1,6 @@
 @model Book_Store.Models.Book
 @using Book_Store.Models
+@addTagHelper *, Book_Store
 
 @{
     ViewData["Title"] = Model.Title;
@@ -108,23 +109,12 @@
                     }
                     <div class="pd-meta-item">
                         <span class="meta-label"><i class="fas fa-box"></i> Tình trạng</span>
-                        @if (Model.Stock > 5)
-                        {
-                            <span class="meta-value stock-in">Còn hàng (@Model.Stock)</span>
-                        }
-                        else if (Model.Stock > 0)
-                        {
-                            <span class="meta-value stock-low">Sắp hết (@Model.Stock)</span>
-                        }
-                        else
-                        {
-                            <span class="meta-value stock-out">Hết hàng</span>
-                        }
+                        <stock-badge stock="@Model.Stock" />
                     </div>
                 </div>
 
                 <div class="pd-price-box">
-                    <span class="pd-price">@((Model.Price).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND</span>
+                    <span class="pd-price"><vnd-price value="@Model.Price" /></span>
                 </div>
 
                 <!-- Quantity + Add to Cart -->
@@ -221,7 +211,7 @@
                                     <span class="related-category">@related.Category.Name</span>
                                 }
                                 <h4 class="related-title">@related.Title</h4>
-                                <span class="related-price">@((related.Price).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND</span>
+                                <vnd-price value="@related.Price" class="related-price" />
                             </div>
                         </a>
                     }

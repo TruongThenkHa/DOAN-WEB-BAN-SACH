@@ -1,0 +1,103 @@
+@page "/Account/Register"
+@model Book_Store.Pages.Account.RegisterModel
+
+@{
+  ViewData["Title"] = "Đăng ký";
+  Layout = null;
+}
+
+<link rel="stylesheet" href="~/css/register.css" />
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+<div class="auth-wrapper">
+  <div class="container">
+    <div class="row auth-card justify-content-center">
+
+      <div class="col-md-6 px-0 d-none d-md-block">
+        <div class="auth-image-section h-100">
+          <img src="~/images/dangnhap1.jpg" alt="Đăng ký">
+        </div>
+      </div>
+
+      <div class="col-md-6 p-5">
+        <h2 class="mb-4 text-center">Đăng ký tài khoản</h2>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        }
+
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+        {
+          <div class="alert alert-danger">
+            <ul class="mb-0">
+              @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+              {
+                <li>@error.ErrorMessage</li>
+              }
+            </ul>
+          </div>
+        }
+
+        @* asp-page posts back to this same Razor Page — no controller needed *@
+        <form method="post">
+          <div class="form-group mb-3">
+            <label asp-for="Input.Email" class="form-label">Email:</label>
+            <input asp-for="Input.Email" type="email" class="form-control" placeholder="example@gmail.com" required />
+            <span asp-validation-for="Input.Email" class="text-danger"></span>
+          </div>
+
+          <div class="form-group mb-3">
+            <label asp-for="Input.FullName" class="form-label">Họ và tên:</label>
+            <input asp-for="Input.FullName" type="text" class="form-control" placeholder="Nhập họ tên" />
+            <span asp-validation-for="Input.FullName" class="text-danger"></span>
+          </div>
+
+          <div class="form-group mb-3">
+            <label asp-for="Input.PhoneNumber" class="form-label">Số điện thoại:</label>
+            <input asp-for="Input.PhoneNumber" type="text" class="form-control" placeholder="Nhập số điện thoại"
+                   required />
+            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+          </div>
+
+          <div class="form-group mb-3">
+            <label asp-for="Input.DateOfBirth" class="form-label">Ngày sinh:</label>
+            <input asp-for="Input.DateOfBirth" type="date" class="form-control" required />
+            <span asp-validation-for="Input.DateOfBirth" class="text-danger"></span>
+          </div>
+
+          <div class="form-group mb-3">
+            <label asp-for="Input.Password" class="form-label">Mật khẩu:</label>
+            <input asp-for="Input.Password" type="password" class="form-control" required />
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+          </div>
+
+          <div class="form-group mb-3">
+            <label asp-for="Input.ConfirmPassword" class="form-label">Xác nhận mật khẩu:</label>
+            <input asp-for="Input.ConfirmPassword" type="password" class="form-control" required />
+            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+          </div>
+
+          <div class="d-grid mt-4">
+            <button type="submit" class="submit-btn">Đăng ký</button>
+          </div>
+
+          <p class="text-center mt-3">
+            Đã có tài khoản?
+            <a asp-page="/Account/Login">Đăng nhập ngay</a>
+          </p>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+  @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+  }
+}
