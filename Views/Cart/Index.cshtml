@@ -1,104 +1,77 @@
 @model List<Book_Store.Models.CartItem>
+@* Register your custom tag helper namespace so <vnd-price> is available *@
+@addTagHelper *, Book_Store
 
 @{
     ViewData["Title"] = "Giỏ hàng";
-    var total = Model.Sum(x => x.Price * x.Quantity);
 }
 
-<link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
+<style>
+    .cart-container {
+        max-width: 1000px;
+        margin: 50px auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    .cart-title {
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 30px;
+    }
+
+    .cart-table img {
+        width: 80px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .total-section {
+        text-align: right;
+        margin-top: 20px;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .checkout-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 250px;
+        margin: 30px auto 0;
+        padding: 12px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 30px;
+        background: linear-gradient(135deg, #ff5722, #ff7043) !important;
+        color: #fff !important;
+        border: none !important;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(255, 87, 34, 0.3);
+        text-decoration: none;
+    }
+
+    .checkout-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 87, 34, 0.4);
+    }
+</style>
 
 <div class="cart-container">
     <div class="cart-title">🛒 GIỎ HÀNG CỦA BẠN</div>
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4 rounded-3" role="alert">
-            <i class="fas fa-exclamation-circle text-danger me-2"></i> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    @if (TempData["WarningMessage"] != null)
-    {
-        <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm mb-4 rounded-3" role="alert">
-            <i class="fas fa-exclamation-triangle text-warning me-2"></i> @TempData["WarningMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    @if (!(Model?.Any() ?? false))
-    {
-        <div class="text-center text-muted">
-            GIỎ HÀNG ĐANG TRỐNG 🥲
-        </div>
-    }
-    else
-    {
-        <table class="table align-middle cart-table text-center">
-            <thead class="table-light">
-                <tr>
-                    <th>Hình</th>
-                    <th>Tên sách</th>
-                    <th>Giá</th>
-                    <th>Số lượng</th>
-                    <th>Tạm tính</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>
-                            <img src="@item.Image" />
-                        </td>
-                        <td>@item.ProductName</td>
-                        <td>@((item.Price).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND</td>
-                        <td>
-                            <form asp-action="UpdateQuantity" method="post" class="d-flex justify-content-center">
-                                <input type="hidden" name="id" value="@item.ProductId" />
-                                <div class="input-group input-group-sm justify-content-center" style="width: 100px;">
-                                    <button type="button" class="btn btn-outline-secondary" onclick="changeQuantity(this, -1)">-</button>
-                                    <input type="number" name="quantity" value="@item.Quantity" min="1" class="form-control quantity-input text-center" readonly />
-                                    <button type="button" class="btn btn-outline-secondary" onclick="changeQuantity(this, 1)">+</button>
-                                </div>
-                            </form>
-                        </td>
-                        <td>
-                            @(((item.Price * item.Quantity)).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND
-                        </td>
-                        <td>
-                            <a asp-action="Remove" asp-route-id="@item.ProductId" 
-                               class="btn btn-sm btn-danger">
-                               Xoá
-                            </a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-
-        <div class="total-section">
-            Tổng cộng: @((total).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND
-        </div>
-
-        <div class="text-end">
-            <a asp-action="Checkout" class="btn checkout-btn">
-                 Thanh toán
-            </a>
-        </div>
-    }
+    @*
+        <component> tag renders the Blazor Server CartTable component.
+        param-InitialItems passes the MVC Model (List<CartItem>) into the component.
+        render-mode="ServerPrerendered" gives instant first paint + then Blazor takes over.
+        After this point, quantity changes and removes happen in C# with no page reload.
+    *@
+    <component type="typeof(Book_Store.Components.Cart.CartTable)"
+               render-mode="ServerPrerendered"
+               param-InitialItems="Model" />
 </div>
-
-<script>
-    function changeQuantity(button, amount) {
-        const form = button.closest('form');
-        const input = form.querySelector('.quantity-input');
-        let currentValue = parseInt(input.value);
-        if (isNaN(currentValue)) currentValue = 1;
-        let newValue = currentValue + amount;
-        if (newValue >= 1) {
-            input.value = newValue;
-            form.submit();
-        }
-    }
-</script>

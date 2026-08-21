@@ -27,6 +27,8 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 builder.Services.AddScoped<IChatBotService, ChatBotService>();
+builder.Services.AddRazorPages();
+builder.Services.AddServerSideBlazor();
 
 // 2. Kết nối Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -69,6 +71,8 @@ app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapRazorPages();
+app.MapBlazorHub();
 
 // 5. Khởi tạo dữ liệu Admin mẫu nếu chưa có
 using (var scope = app.Services.CreateScope())

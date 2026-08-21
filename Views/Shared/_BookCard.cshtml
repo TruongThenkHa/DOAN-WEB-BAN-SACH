@@ -13,14 +13,7 @@
         <img src="@imgSrc" alt="@Model.Title" class="card-image"
              asp-append-version="true"
              onerror="this.src='/images/no-image.png'" />
-        @if (Model.Stock == 0)
-        {
-            <span class="badge-out">Hết hàng</span>
-        }
-        else if (Model.Stock <= 5)
-        {
-            <span class="badge-low">Sắp hết</span>
-        }
+        <stock-badge stock="@Model.Stock" mode="badge" />
     </div>
 
     <div class="card-body">
@@ -30,7 +23,7 @@
         }
         <h3 class="card-title" title="@Model.Title">@Model.Title</h3>
         <div class="card-price">
-            @((Model.Price).ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")))VND
+            <vnd-price value="@Model.Price" />
         </div>
         <div class="card-actions">
             @if (Model.Stock == 0)

@@ -5,43 +5,45 @@
 @inject Book_Store.Models.ApplicationDbContext _layoutDb
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    @* CSS *@
-    @* HeaderCSS *@
-    <link rel="stylesheet" href="~/css/header.css" asp-append-version="true" />
-    @* CategoriesCSS *@
-    <link rel="stylesheet" href="~/css/categories.css" asp-append-version="true" />
-    @* --- *@
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Book_Store</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/chatbot.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/style_layout.css" asp-append-version="true" />
+  @* CSS *@
+  @* HeaderCSS *@
+  <link rel="stylesheet" href="~/css/header.css" asp-append-version="true" />
+  @* CategoriesCSS *@
+  <link rel="stylesheet" href="~/css/categories.css" asp-append-version="true" />
+  @* --- *@
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>@ViewData["Title"] - Book_Store</title>
+  <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="~/css/chatbot.css" asp-append-version="true" />
+  <link rel="stylesheet" href="~/css/style_layout.css" asp-append-version="true" />
 </head>
+<script src="_framework/blazor.server.js"></script>
+
 <body>
-    <div class="sticky-top-bar">
+  <div class="sticky-top-bar">
     <header class="site-header">
-    <div class="container header-main">
-        
+      <div class="container header-main">
+
         <a href="/" class="logo-wrapper">
-            <img src="~/images/logo.png" alt="Nhà Sách Hải An" class="logo-img" asp-append-version="true">
+          <img src="~/images/logo.png" alt="Nhà Sách Hải An" class="logo-img" asp-append-version="true">
         </a>
 
         <div class="search-wrapper">
-            <form action="/Home/ProductList" method="get" class="search-box">
-                <input type="text" name="q" id="globalSearchInput" placeholder="Bạn muốn tìm sách gì?" autocomplete="off">
-                <button type="submit">
-                    <i class="fas fa-search"></i>
-                </button>
-            </form>
-            <div id="searchSuggestions" class="search-suggestions-dropdown"></div>
+          <form action="/Home/ProductList" method="get" class="search-box">
+            <input type="text" name="q" id="globalSearchInput" placeholder="Bạn muốn tìm sách gì?" autocomplete="off">
+            <button type="submit">
+              <i class="fas fa-search"></i>
+            </button>
+          </form>
+          <div id="searchSuggestions" class="search-suggestions-dropdown"></div>
         </div>
 
         <div class="actions-wrapper">
-            
             <div class="auth-section">
                 @if (User.Identity?.IsAuthenticated ?? false)
                 {
@@ -74,135 +76,136 @@
                 }
             </div>
 
-@{
-    var layoutCartKey = "cart_guest";
-    if (User.Identity != null && User.Identity.IsAuthenticated)
-    {
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (!string.IsNullOrEmpty(userId))
-        {
-            layoutCartKey = $"cart_{userId}";
-        }
-    }
-    var sessionCartJson = Context.Session.GetString(layoutCartKey);
-    var sessionCartCount = 0;
-    if (!string.IsNullOrEmpty(sessionCartJson))
-    {
-        try
-        {
-            var sessionCart = JsonSerializer.Deserialize<List<CartItem>>(sessionCartJson);
-            sessionCartCount = sessionCart?.Sum(x => x.Quantity) ?? 0;
-        }
-        catch {}
-    }
-}
- <a asp-controller="Cart" asp-action="Index" class="cart-icon-wrapper">
-    <i class="fa fa-shopping-cart"></i>
-    <span id="cartCount" class="cart-badge">@sessionCartCount</span>
- </a>
+          @{
+            var layoutCartKey = "cart_guest";
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+              var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+              if (!string.IsNullOrEmpty(userId))
+              {
+                layoutCartKey = $"cart_{userId}";
+              }
+            }
+            var sessionCartJson = Context.Session.GetString(layoutCartKey);
+            var sessionCartCount = 0;
+            if (!string.IsNullOrEmpty(sessionCartJson))
+            {
+              try
+              {
+                var sessionCart = JsonSerializer.Deserialize<List<CartItem>>(sessionCartJson);
+                sessionCartCount = sessionCart?.Sum(x => x.Quantity) ?? 0;
+              }
+              catch { }
+            }
+          }
+          <a asp-controller="Cart" asp-action="Index" class="cart-icon-wrapper">
+            <i class="fa fa-shopping-cart"></i>
+            <span id="cartCount" class="cart-badge">@sessionCartCount</span>
+          </a>
 
         </div>
-    </div>
-</header>
+      </div>
+    </header>
 
-        <nav class="nav-main">
-    <div class="container nav-container">
-        
+    <nav class="nav-main">
+      <div class="container nav-container">
+
         <div class="category-wrapper">
-            <div class="category-menu" onclick="toggleCategoryDropdown(event)">
-                <i class="fas fa-bars"></i>
-                <span>DANH MỤC SẢN PHẨM</span>
-            </div>
+          <div class="category-menu" onclick="toggleCategoryDropdown(event)">
+            <i class="fas fa-bars"></i>
+            <span>DANH MỤC SẢN PHẨM</span>
+          </div>
 
-            <div class="category-dropdown" id="categoryDropdown">
-                <ul class="category-list">
-                    @{
-                        var navCategories = await _layoutDb.Categories
-                            .AsNoTracking()
-                            .OrderBy(c => c.Name)
-                            .ToListAsync();
-                    }
-                    @foreach (var cat in navCategories)
-                    {
-                        <li>
-                            <a href="/Home/ProductList?categoryId=@cat.CategoryID">@cat.Name</a>
-                        </li>
-                    }
-                </ul>
-            </div>
+          <div class="category-dropdown" id="categoryDropdown">
+            <ul class="category-list">
+              @{
+                var navCategories = await _layoutDb.Categories
+                    .AsNoTracking()
+                    .OrderBy(c => c.Name)
+                    .ToListAsync();
+              }
+              @foreach (var cat in navCategories)
+              {
+                <li>
+                  <a href="/Home/ProductList?categoryId=@cat.CategoryID">@cat.Name</a>
+                </li>
+              }
+            </ul>
+          </div>
         </div>
 
         <div class="main-nav-links">
-            <a href="/" class="nav-link">Trang chủ</a>
-            <a asp-controller="Home" asp-action="ProductList" class="nav-link">Cửa hàng</a>
-            <a asp-controller="Home" asp-action="About" class="nav-link">Giới thiệu</a>
+          <a href="/" class="nav-link">Trang chủ</a>
+          <a asp-controller="Home" asp-action="ProductList" class="nav-link">Cửa hàng</a>
+          <a asp-controller="Home" asp-action="About" class="nav-link">Giới thiệu</a>
         </div>
-    </div>
-</nav>
-    </div><!-- /.sticky-top-bar -->
+      </div>
+    </nav>
+  </div><!-- /.sticky-top-bar -->
 
                
 
 
-    <main role="main" class="pb-3">
-        @RenderBody()
-    </main>
+  <main role="main" class="pb-3">
+    @RenderBody()
+  </main>
 
 
-    @* <footer class="border-top footer text-muted">
+  @* <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2026 - Book_Store - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer> *@
-    <!-- Footer -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Về chúng tôi</h3>
-                <p>Nhà Sách \ - Nơi hội tụ tri thức, nơi lan tỏa đam mê đọc sách.</p>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-youtube"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-tiktok"></i></a>
-                </div>
-            </div>
-
-            <div class="footer-section">
-                <h3>Hỗ trợ khách hàng</h3>
-                <ul>
-                    <li><a href="#">Chính sách đổi trả</a></li>
-                    <li><a href="#">Chính sách bảo mật</a></li>
-                    <li><a href="#">Phương thức thanh toán</a></li>
-                    <li><a href="#">Hướng dẫn mua hàng</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-section">
-                <h3>Danh mục sản phẩm</h3>
-                <ul>
-                    <li><a href="#">Sách kinh doanh</a></li>
-                    <li><a href="#">Sách thiếu nhi</a></li>
-                    <li><a href="#">Sách kỹ năng</a></li>
-                    <li><a href="#">Văn học - Tiểu thuyết</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-section">
-                <h3>Liên hệ</h3>
-                <ul>
-                    <li><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Q1, TP.HCM</li>
-                    <li><i class="fas fa-phone"></i> 1900 xxxx</li>
-                    <li><i class="fas fa-envelope"></i> contact@nhasach.com</li>
-                    <li><i class="fas fa-clock"></i> 8:00 - 22:00 (Hàng ngày)</li>
-                </ul>
-            </div>
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>Về chúng tôi</h3>
+        <p>Nhà Sách \ - Nơi hội tụ tri thức, nơi lan tỏa đam mê đọc sách.</p>
+        <div class="social-links">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-tiktok"></i></a>
         </div>
+      </div>
+
+      <div class="footer-section">
+        <h3>Hỗ trợ khách hàng</h3>
+        <ul>
+          <li><a href="#">Chính sách đổi trả</a></li>
+          <li><a href="#">Chính sách bảo mật</a></li>
+          <li><a href="#">Phương thức thanh toán</a></li>
+          <li><a href="#">Hướng dẫn mua hàng</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h3>Danh mục sản phẩm</h3>
+        <ul>
+          <li><a href="#">Sách kinh doanh</a></li>
+          <li><a href="#">Sách thiếu nhi</a></li>
+          <li><a href="#">Sách kỹ năng</a></li>
+          <li><a href="#">Văn học - Tiểu thuyết</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h3>Liên hệ</h3>
+        <ul>
+          <li><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Q1, TP.HCM</li>
+          <li><i class="fas fa-phone"></i> 1900 xxxx</li>
+          <li><i class="fas fa-envelope"></i> contact@nhasach.com</li>
+          <li><i class="fas fa-clock"></i> 8:00 - 22:00 (Hàng ngày)</li>
+        </ul>
+      </div>
     </div>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/chatbot.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+  </div>
+  <script src="~/lib/jquery/dist/jquery.min.js"></script>
+  <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="~/js/site.js" asp-append-version="true"></script>
+  <script src="~/js/chatbot.js" asp-append-version="true"></script>
+  @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>
